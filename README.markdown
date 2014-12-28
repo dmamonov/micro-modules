@@ -5,9 +5,12 @@ Allow to control code dependencies at class level precision without affecting cu
 ##Inspiration
 
 Working with a distributed team on a project of a several hundred thousands lines of code
-I found it hard to control code usages at class level. Once most of logic is accessible
-everywhere it started to be usual problem when, for example, developers use user interface models
-in core business logic. Idea of this framework is to get rid of such problems without increasing
+I found it hard to control code usages at class level.
+
+Once most of logic is accessible everywhere it started to be usual problem when, for example,
+developers use user interface models in core business logic.
+
+Idea of this framework is to get rid of such problems without increasing
 project complexity and not even require any changes in code structure at first step.
 
 ##Alternatives Overview
@@ -89,7 +92,7 @@ More complex example with two modules placed in same package:
 
 Based on configuration above, classes from module *HelloWorld* directly allowed to use contract
 classes of module *InputOutput*. This helps to find not allowed dependency from *InputOutput* module
-classes to *HelloWorld" classes. But once project got bigger, managing all allowed dependencies by bare hands
+classes to *HelloWorld" classes. But while project get bigger, managing all allowed dependencies by bare hands
 starts to be tedious and, probably, useless. Modules hierarchy concept helps here.
 
 ###Modules Hierarchy
@@ -139,7 +142,8 @@ next rules applies:
         public static class GoodByeModule extends CommunicationLayer {
             public void setup(final ModuleSetup setup) {
                setup.dependencies().allow(HelloWorldModule.class)
-                   .comment("Thought by default communication layer modules must not interact each other")
+                   .comment("Thought communication layer modules" +
+                            " must not interact each other by default")
                    .comment("For this specific module it is allowed to use HelloWorld module");
             }
         }
@@ -147,7 +151,33 @@ next rules applies:
 
 
 ###Defining Relations between Modules and Classes
-...
+
+Within `setup` method it is possible to connect classes placed in *current* package
+to module *implementation* or *contract*. This is done by matching by simple class name patterns.
+Once top level class matches pattern - all nested, inlined and lambda classes will match to.
+
+    setup.comment("A bit more complex )
+        .contract().include().matchBySuffix("Service")
+        .comment("Suppose interface classes end with 'Service' suffix")
+        .contract().exclude().matchByName("AbstractService")
+        .comment("Except AbstractService which is abstract class")
+        .implementation().include().allInPackage()
+        .comment("Rest of classes in package will be treated as implementation")
+        ...
+
+In order to include classes from other packages, there should be *partial* module (`Module.Partial`)
+defined. Then *partial* module should be used in main module configuration:
+
+     setup.comment("Include context from different package using partial module")
+         .addPartialModule(new SomePartialModuleFromDifferentPackage())
+         ...
+
+All this usable in case when it is important to add *micro modules* layer over existing project
+not even changing any class in there, yet not introducing any usages of project classes.
+
+Once it is possible to change existing code it is better to use annotations:
+   - `@Contract(__modules__.OutputModule.class) public interface Output {`
+   - `@Implementation(__modules__.OutputModule.class) public class OutputImpl {...`
 
 
 
