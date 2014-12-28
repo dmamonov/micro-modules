@@ -194,7 +194,7 @@ In order to setup *micro modules* in project you only need to add:
 
 ##Micro Modules Control
 
-Once project if properly configured, even partially, it is time to get some benefits of it
+Once project is properly configured, even partially, it's time to get some benefits of it
 using `micro-modules-control` part of the framework.
 
     <dependency>
