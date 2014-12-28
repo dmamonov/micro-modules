@@ -40,6 +40,10 @@ It is all about:
 Properly defined module is a java class which apply to this conventions:
   - Module class is always an inner class placed in enclosing class named `__module__` or `__modules__`
   - Module class implements interface `Module` or extends from super module.
+  - Module name matches to class simple name, word `Module` in prefix or suffix is omitted.
+
+
+Here is __Example__ module.
 
     public class __modules__ {
         public static class ExampleModule implements Module {
