@@ -208,14 +208,14 @@ It defines `org.micromodules.control.ControlMain` executable class which could b
   - check project structure against dependency rules
   - prepare structured report of current modules layout and interaction
 
-Currently this rules are supported:
+Currently supported rule:
   - None of module classes may refer to *implementation* classes of other modules
-  - None of module classes may refer to *contract* classes of other modules, which in not allowed by module dependencis configuration
-  - Each module must contain at least one class, except it is *super* module
-  - Each super module must contain at least on *sub* module
-  - Each class may be connected at most to one module
-  - Each class (except module setup) must be connected to some module
-  - Module configuration classes must be placed properly
+  - None of module classes may refer to *contract* classes of other modules, which in not allowed by module dependencies configuration
+  - TODO Each module must contain at least one class, except it is *super* module
+  - TODO Each super module must contain at least on *sub* module
+  - TODO Each class may be connected at most to one module
+  - TODO Each class (except module setup) must be connected to some module
+  - TODO Module configuration classes must be placed properly
 
 Here is example report bases on test classes: TODO
 
