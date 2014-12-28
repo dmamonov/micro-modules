@@ -35,20 +35,119 @@ It is all about:
   - defining allowed dependencies between them
   - and checking all of this fit together properly.
 
-###Micro Module Definition
+###Module Definition
 
 Properly defined module is a java class which apply to this conventions:
-  - Module class is always an inner class placed in enclosing class named `__module__` or `__modules__`
+  - Module is *always* an inner static class placed in enclosing class named `__module__` or `__modules__`
   - Module class implements interface `Module` or extends from super module.
   - Module name matches to class simple name, word `Module` in prefix or suffix is omitted.
 
 
-Here is __Example__ module.
+Here is blank __HelloWorld__ module.
+
+    package org.hello;
+
+    import org.micromodules.setup.Module;
+    import org.micromodules.setup.ModuleSetup;
 
     public class __modules__ {
-        public static class ExampleModule implements Module {
+        public static class HelloWorldModule implements Module {
             public void setup(final ModuleSetup setup) {
                //configure module here.
             }
         }
     }
+
+Implementing `setup` method module defines:
+  - Contract classes, which could be used by classes from other modules
+  - Implementation classes, which *must not* be referenced from other modules
+  - Allowed dependencies to other modules
+
+More complex example with two modules placed in same package:
+
+    public class __modules__ {
+        public static class InputOutputModule implements Module {
+            public void setup(final ModuleSetup setup) {
+               setup.comment("Handles standard input and output for messages")
+                   .contract().include().matchByName("InputOutput")
+                   .comment("InputOutput is an interface which abstracts console in this example")
+                   .implementation().include().matchByName("InputOutputImpl")
+                   .comment("InputOutputImpl is a corresponding implementation");
+            }
+        }
+
+        public static class HelloWorldModule implements Module {
+            public void setup(final ModuleSetup setup) {
+               setup.comment("Business logic module intended to print Hello World into console using InputOutput")
+                   .contract().include().matchByName("HelloWorld")
+                   .implementation().include().matchByName("HelloWorldImpl")
+                   .dependencies().allow(InputOutputModule.class)
+                   .comment("Dependency to InputOutput module defined directly here");
+            }
+        }
+    }
+
+Based on configuration above, classes from module *HelloWorld* directly allowed to use contract
+classes of module *InputOutput*. This helps to find not allowed dependency from *InputOutput* module
+classes to *HelloWorld" classes. But once project got bigger, managing all allowed dependencies by bare hands
+starts to be tedious and, probably, useless. Modules hierarchy concept helps here.
+
+###Modules Hierarchy
+
+Hierarchy between modules defined using regular java inheritance. Once *SuperModule* and *SubModule* joined into hierarchy,
+next rules applies:
+  - Super module __must not__ be related with any classes.
+  - Super module may define allowed dependencies which will be inherited by sub modules.
+  - Once dependency refers to some super module, it extends to all sub modules of such.
+  - Super module may allow dependencies to it self in order to allow for sub modules to refer each other.
+
+
+    public class __modules__ {
+        public static class IOLayer implements Module {
+            public void setup(final ModuleSetup setup) {
+               setup.dependencies().allow(IOLayer.class)
+                  .comment("Allow to Input and Output modules to interact");
+            }
+        }
+
+        public static class InputModule extends IOLayer {
+            public void setup(final ModuleSetup setup) {
+               ...
+            }
+        }
+
+        public static class OutputModule extends IOLayer {
+            public void setup(final ModuleSetup setup) {
+               ...
+            }
+        }
+
+        public static class CommunicationLayer implements Module {
+            public void setup(final ModuleSetup setup) {
+               setup.dependencies().allow(IOLayer.class)
+                  .comment("Allow to refer to Input and Output modules")
+                  .comment("But all sub modules must be independent by default");
+            }
+        }
+
+        public static class HelloWorldModule extends CommunicationLayer {
+            public void setup(final ModuleSetup setup) {
+               ...
+            }
+        }
+
+        public static class GoodByeModule extends CommunicationLayer {
+            public void setup(final ModuleSetup setup) {
+               setup.dependencies().allow(HelloWorldModule.class)
+                   .comment("Thought by default communication layer modules must not interact each other")
+                   .comment("For this specific module it is allowed to use HelloWorld module");
+            }
+        }
+    }
+
+
+###Defining Relations between Modules and Classes
+...
+
+
+
