@@ -1,6 +1,6 @@
 #Micro Modules Framework
 
-Allow to control code dependencies at class level precision without affecting current project structure.
+Control code dependencies at class level precision not affecting current project structure.
 
 ##Inspiration
 
