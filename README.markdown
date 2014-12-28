@@ -169,7 +169,7 @@ In order to include classes from other packages, there should be *partial* modul
 defined. Then *partial* module should be used in main module configuration:
 
      setup.comment("Include context from different package using partial module")
-         .addPartialModule(new SomePartialModuleFromDifferentPackage())
+         .addPartialModule(new some.other.package.__modules__.SomePartialModuleFromDifferentPackage())
          ...
 
 All this usable in case when it is important to add *micro modules* layer over existing project
@@ -180,4 +180,44 @@ Once it is possible to change existing code it is better to use annotations:
    - `@Implementation(__modules__.OutputModule.class) public class OutputImpl {...`
 
 
+###Configuration Summary
+It was short yet almost complete reference for configuration. For more practical examples please check this tests: TODO.
+
+In order to setup *micro modules* in project you only need to add:
+
+    <dependency>
+        <groupId>org.micromodules</groupId>
+        <artifactId>micromodules-setup</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <scope>compile</scope>
+    </dependency>
+
+##Micro Modules Control
+
+Once project if properly configured, even partially, it is time to get some benefits of it
+using `micro-modules-control` part of the framework.
+
+    <dependency>
+        <groupId>org.micromodules</groupId>
+        <artifactId>micromodules-control</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <scope>runtime</scope>
+    </dependency>
+
+It defines `org.micromodules.control.ControlMain` executable class which could be used directly to:
+  - check project structure against dependency rules
+  - prepare structured report of current modules layout and interaction
+
+Currently this rules are supported:
+  - None of module classes may refer to *implementation* classes of other modules
+  - None of module classes may refer to *contract* classes of other modules, which in not allowed by module dependencis configuration
+  - Each module must contain at least one class, except it is *super* module
+  - Each super module must contain at least on *sub* module
+  - Each class may be connected at most to one module
+  - Each class (except module setup) must be connected to some module
+  - Module configuration classes must be placed properly
+
+Here is example report bases on test classes: TODO
+
+How to run control tool using Maven: TODO
 
