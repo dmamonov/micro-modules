@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.DefaultDirectedGraph;
 import org.micromodules.control.analyze.ModulesAnalyzer;
 import org.micromodules.control.graph.GraphDomain.EdgeType;
 import org.micromodules.control.graph.GraphDomain.Node;
@@ -29,7 +29,7 @@ import static org.micromodules.control.util.Predicates2.and;
  */
 @org.micromodules.setup.Contract(__modules__.ModulesGraphModule.class)
 public class ModulesGraph {
-    private final DirectedGraph<Node, NodeEdge> graph = new DirectedMultigraph<>(NodeEdge.class);
+    private final DirectedGraph<Node, NodeEdge> graph = new DefaultDirectedGraph<>(NodeEdge.class);
     private final ImmutableMap<Node, ModuleSpec> nodeToModuleSpecMap;
 
     public static ModulesGraph createFrom(final ClasspathRelations classpathRelations, final ModulesSpecification modulesSpecification) {

@@ -21,9 +21,9 @@ import java.nio.file.Files;
 @Contract(__modules__.ModulesGraphModule.class)
 public class GraphRenderer {
     private static final DefaultExecutor executor = new DefaultExecutor();
-    private final boolean renderGraphToPng;
+    private final boolean renderGraphToSvg;
 
-    public static GraphRenderer createDonAndPngRenderer(){
+    public static GraphRenderer createDonAndSvgRenderer(){
         return new GraphRenderer(true);
 
     }
@@ -32,8 +32,8 @@ public class GraphRenderer {
         return new GraphRenderer(false);
     }
 
-    private GraphRenderer(final boolean renderGraphToPng) {
-        this.renderGraphToPng = renderGraphToPng;
+    private GraphRenderer(final boolean renderGraphToSvg) {
+        this.renderGraphToSvg = renderGraphToSvg;
     }
 
     public File export(final DirectedGraph<GraphDomain.Node, GraphDomain.NodeEdge> g, final File dir, final String name) {
@@ -55,7 +55,7 @@ public class GraphRenderer {
                 try (final FileWriter out = new FileWriter(dotFile)) {
                     out.write(dotText);
                 }
-                if (renderGraphToPng) {
+                if (renderGraphToSvg) {
                     if (g.vertexSet().size() <= 100) {
                         System.out.println("  rendering: " + svgFile);
                         final CommandLine command = new CommandLine("dot");

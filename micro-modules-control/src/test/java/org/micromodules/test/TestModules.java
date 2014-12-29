@@ -10,7 +10,6 @@ import org.micromodules.control.Main;
 public class TestModules {
     @Test
     public void testControlReport() {
-        System.setProperty("micromodules.open_index", "true");
         Main.main("org.micromodules.test");
     }
 }
