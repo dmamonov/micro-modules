@@ -138,16 +138,18 @@ public class ModulesGraph {
             {
                 final ImmutableSet<Node> superModulesSet = analyzer.getSuperModules(module).set(ModuleNode);
                 System.out.println("  Super modules: " + superModulesSet);
-                final ImmutableSet<Node> allowedDependencyModulesSet = analyzer.getModuleAllowedDependencies(module).set(ModuleNode);
-                System.out.println("  Allowed dependencies: " + allowedDependencyModulesSet);
+                final ImmutableSet<Node> directlyGrantedModulesSet = analyzer.getModuleDirectlyGrantedDependencies(module).set(ModuleNode);
+                System.out.println("  Directly granted dependencies: " + directlyGrantedModulesSet);
+                final ImmutableSet<Node> grantedModulesSet = query().from(directlyGrantedModulesSet).forward().by(SubModule).to(ModuleNode).recursive().set(ModuleNode);
+                System.out.println("  All granted dependencies: " + grantedModulesSet);
                 final ImmutableSet<Node> actualDependencySet = analyzer.getModuleDirectDependencies(module).useFinish().set(ModuleNode);
                 System.out.println("  Actual dependencies: " + actualDependencySet);
-                final Sets.SetView<Node> notAllowedActualDependenciesSet = Sets.difference(actualDependencySet, allowedDependencyModulesSet);
+                final Sets.SetView<Node> notAllowedActualDependenciesSet = Sets.difference(actualDependencySet, grantedModulesSet);
                 if (notAllowedActualDependenciesSet.size() > 0) {
                     System.out.println("  Contains not allowed dependencies: " + notAllowedActualDependenciesSet);
                     notAllowedActualDependenciesSet.forEach(dependencyModule -> createEdge(module, NotAllowed, dependencyModule));
                 }
-                final Sets.SetView<Node> allowedActualDependenciesSet = Sets.intersection(actualDependencySet, allowedDependencyModulesSet);
+                final Sets.SetView<Node> allowedActualDependenciesSet = Sets.intersection(actualDependencySet, grantedModulesSet);
                 if (allowedActualDependenciesSet.size() > 0) {
                     System.out.println("  Contains allowed dependencies: " + allowedActualDependenciesSet);
                     allowedActualDependenciesSet.forEach(dependencyModule -> createEdge(module, Allowed, dependencyModule));

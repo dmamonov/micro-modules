@@ -96,7 +96,7 @@ public class ModulesAnalyzer {
             return graph.query().from(module).forward().by(Dependency.and(NotAllowed)).to(ModuleNode).single();
         }
     }
-    public GraphPathFinish getModuleAllowedDependencies(final Node module){
+    public GraphPathFinish getModuleDirectlyGrantedDependencies(final Node module){
         final ImmutableSet<Node> superModulesSet = getSuperModules(module).set(ModuleNode);
         return graph.query().from(superModulesSet).forward().by(Granted).to(ModuleNode).single().useFinish();
     }
