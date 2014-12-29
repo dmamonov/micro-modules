@@ -7,8 +7,8 @@ import org.micromodules.test.__module__.BusinessLayer;
  * @author dmitry.mamonov
  *         Created: 2014-12-26 9:56 PM
  */
-public class __module__ {
-    public static class Business1Module extends BusinessLayer {
+public interface  __module__ {
+    class Business1Module extends BusinessLayer {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("Business module one")
@@ -17,7 +17,7 @@ public class __module__ {
         }
     }
 
-    public static class Business2Module extends BusinessLayer {
+    class Business2Module extends BusinessLayer {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("Business module two")

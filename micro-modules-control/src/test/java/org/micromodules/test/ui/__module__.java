@@ -7,8 +7,8 @@ import org.micromodules.test.__module__.UiLayer;
  * @author dmitry.mamonov
  *         Created: 2014-12-26 9:56 PM
  */
-public class __module__ {
-    public static class Ui1Module extends UiLayer {
+public interface  __module__ {
+    class Ui1Module extends UiLayer {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("User interface one")
@@ -17,7 +17,7 @@ public class __module__ {
         }
     }
 
-    public static class Ui2Module extends UiLayer {
+    class Ui2Module extends UiLayer {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("User interface two")
@@ -27,7 +27,7 @@ public class __module__ {
         }
     }
 
-    public static class Ui3Module extends UiLayer {
+    class Ui3Module extends UiLayer {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("User interface three")

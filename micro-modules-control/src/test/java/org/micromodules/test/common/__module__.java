@@ -8,8 +8,8 @@ import org.micromodules.test.__module__.StandaloneLayer;
  * @author dmitry.mamonov
  *         Created: 2014-12-26 9:56 PM
  */
-public class __module__ {
-    public static class Standalone1Module extends StandaloneLayer {
+public interface __module__ {
+    class Standalone1Module extends StandaloneLayer {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("Logic without logal dependencies")
@@ -18,7 +18,7 @@ public class __module__ {
         }
     }
 
-    public static class Common1Module extends CommonLayer {
+    class Common1Module extends CommonLayer {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("Some basic logic")
