@@ -16,7 +16,7 @@ import java.util.Map;
  * @author dmitry.mamonov
  *         Created: 2014-12-25 5:25 PM
  */
-abstract class Abstract30Connect extends Abstract20Scan{
+abstract class Abstract30Connect extends Abstract20Scan {
     private final Map<String, String> classToModuleMap = new HashMap<>();
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final MapToSet<String, String> classContainsClassesMap = new MapToSet<>();
@@ -27,7 +27,7 @@ abstract class Abstract30Connect extends Abstract20Scan{
 
 
     protected void connect() {
-        new Runnable(){
+        new Runnable() {
             @Override
             public void run() {
                 connectClassToModule();
@@ -64,7 +64,7 @@ abstract class Abstract30Connect extends Abstract20Scan{
                             addRelations(trackAs, ctClass.getRefClasses());
                             addRelations(trackAs, ImmutableList.of(ctClass.getSuperclass().getName()));
                             final CtClass[] interfaces = ctClass.getInterfaces();
-                            if (interfaces!=null) {
+                            if (interfaces != null) {
                                 for (final CtClass face : interfaces) {
                                     addRelations(trackAs, ImmutableList.of(face.getName()));
                                 }
@@ -97,8 +97,7 @@ abstract class Abstract30Connect extends Abstract20Scan{
             }
 
 
-
-            protected void connectModuleToModule(){
+            protected void connectModuleToModule() {
                 for (final ModuleSpec moduleSpec : listModuleSpec()) {
                     final String moduleId = moduleSpec.getId();
                     for (final Class<?> classInModule : moduleSpec.getAllClasses()) {
@@ -120,33 +119,34 @@ abstract class Abstract30Connect extends Abstract20Scan{
         return getClassDependencies(clazz.getName());
     }
 
-    ImmutableSet<String> getClassDependencies(final String clazzName){
+    ImmutableSet<String> getClassDependencies(final String clazzName) {
         return ImmutableSet.copyOf(classToDependencyClassMap.get(clazzName));
     }
 
-    ImmutableSet<String> getClassSubclasses(final Class<?> clazz){
+    ImmutableSet<String> getClassSubclasses(final Class<?> clazz) {
         return getClassSubclasses(clazz.getName());
     }
 
-    ImmutableSet<String> getClassSubclasses(final String clazzName){
+    ImmutableSet<String> getClassSubclasses(final String clazzName) {
         return ImmutableSet.copyOf(classContainsClassesMap.get(clazzName));
     }
 
     private final Map<String, String> classToJarMap = new HashMap<>();
-    String getJarName(final String clazzName){
-        if (!classToJarMap.containsKey(clazzName)){
+
+    String getJarName(final String clazzName) {
+        if (!classToJarMap.containsKey(clazzName)) {
             final Class clazz;
             try {
                 clazz = Class.forName(clazzName);
             } catch (final ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
-            final URL resource = clazz.getResource("/"+clazz.getName().replace('.', '/') + ".class");
-            if (resource!=null) {
+            final URL resource = clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class");
+            if (resource != null) {
                 final String[] urlItems = resource.toString().split("/");
                 for (final String item : urlItems) {
-                    if (item.endsWith("!")){
-                        classToJarMap.put(clazzName, item.replaceAll("!",""));
+                    if (item.endsWith("!")) {
+                        classToJarMap.put(clazzName, item.replaceAll("!", ""));
                         break;
                     }
                 }

@@ -83,6 +83,12 @@ abstract class Abstract10Domain extends Abstract00Core {
             this.moduleClass = checkNotNull(moduleClass);
             this.classesByPackage = checkNotNull(classesByPackage);
             this.name = moduleClass.getName();
+            getAnnotatedContractClasses(this.moduleClass).forEach(contractClazz ->
+                    new ClassesFilterImpl(contractClazz.getPackage().getName(), contractInclude, contractExclude)
+                            .include().matchByName(contractClazz.getSimpleName()));
+            getAnnotatedImplementationClasses(this.moduleClass).forEach(implementationClazz ->
+                    new ClassesFilterImpl(implementationClazz.getPackage().getName(), implementationInclude, implementationExclude)
+                            .include().matchByName(implementationClazz.getSimpleName()));
         }
 
         @Override
@@ -101,64 +107,78 @@ abstract class Abstract10Domain extends Abstract00Core {
             return createClassesPattern(implementationInclude, implementationExclude);
         }
         private ClassesFilter<ModuleSetup> createClassesPattern(final Set<Class<?>> include, final Set<Class<?>> exclude) {
-            return new ClassesFilter<ModuleSetup>() {
-                @Override
-                public ClassesPattern<ModuleSetup> include() {
-                    return createClassesPattern(include);
-                }
+            return new ClassesFilterImpl(moduleClass.getPackage().getName(), include, exclude);
 
-                @Override
-                public ClassesPattern<ModuleSetup> exclude() {
-                    return createClassesPattern(exclude);
-                }
-
-                private ClassesPattern<ModuleSetup> createClassesPattern(final Set<Class<?>> classesSet) {
-                    //noinspection Convert2Lambda
-                    return new ClassesPattern<ModuleSetup>() {
-                        @Override
-                        public ModuleSetup matchByPattern(final Pattern regexp) {
-                            final Set<Class<?>> classesInPackage = classesByPackage.get(moduleClass.getPackage().getName());
-                            if (classesInPackage != null) {
-                                boolean matched = false;
-                                for (final Class<?> clazz : classesInPackage) {
-                                    if (regexp.matcher(clazz.getSimpleName().replace("[$].*","")).matches()) {
-                                        classesSet.add(clazz);
-                                        matched = true;
-                                    }
-                                }
-                                checkState(matched, "Nothing matched to pattern: " + regexp + " of module " + moduleClass.getName());
-                            }
-                            return ModuleSetupImpl.this;
-                        }
-
-                        @Override
-                        public ModuleSetup allInPackage() {
-                            return matchByPattern(compile(".*"));
-                        }
-
-                        @Override
-                        public ModuleSetup matchByPrefix(final String prefix) {
-                            return matchByPattern(compile(quote(prefix)+".*"));
-                        }
-
-                        @Override
-                        public ModuleSetup matchBySuffix(final String suffix) {
-                            return matchByPattern(compile(".*"+quote(suffix)));
-                        }
-
-                        @Override
-                        public ModuleSetup matchByName(final String simpleClassName) {
-                            return matchByPattern(compile(quote(simpleClassName)));
-                        }
-                    };
-                }
-
-                @Override
-                public ModuleSetup none() {
-                    return ModuleSetupImpl.this;
-                }
-            };
         }
+
+        private class ClassesFilterImpl implements ClassesFilter<ModuleSetup> {
+            private final String basePackageName;
+            private final Set<Class<?>> include;
+            private final Set<Class<?>> exclude;
+
+            public ClassesFilterImpl(final String basePackageName, final Set<Class<?>> include, final Set<Class<?>> exclude) {
+                this.basePackageName = basePackageName;
+                this.include = include;
+                this.exclude = exclude;
+            }
+
+            @Override
+            public ClassesPattern<ModuleSetup> include() {
+                return createClassesPattern(include);
+            }
+
+            @Override
+            public ClassesPattern<ModuleSetup> exclude() {
+                return createClassesPattern(exclude);
+            }
+
+            private ClassesPattern<ModuleSetup> createClassesPattern(final Set<Class<?>> classesSet) {
+                //noinspection Convert2Lambda
+                return new ClassesPattern<ModuleSetup>() {
+                    @Override
+                    public ModuleSetup matchByPattern(final Pattern regexp) {
+
+                        final Set<Class<?>> classesInPackage = classesByPackage.get(basePackageName);
+                        if (classesInPackage != null) {
+                            boolean matched = false;
+                            for (final Class<?> clazz : classesInPackage) {
+                                if (regexp.matcher(clazz.getSimpleName().replace("[$].*","")).matches()) {
+                                    classesSet.add(clazz);
+                                    matched = true;
+                                }
+                            }
+                            checkState(matched, "Nothing matched to pattern: " + regexp + " of module " + moduleClass.getName());
+                        }
+                        return ModuleSetupImpl.this;
+                    }
+
+                    @Override
+                    public ModuleSetup allInPackage() {
+                        return matchByPattern(compile(".*"));
+                    }
+
+                    @Override
+                    public ModuleSetup matchByPrefix(final String prefix) {
+                        return matchByPattern(compile(quote(prefix)+".*"));
+                    }
+
+                    @Override
+                    public ModuleSetup matchBySuffix(final String suffix) {
+                        return matchByPattern(compile(".*"+quote(suffix)));
+                    }
+
+                    @Override
+                    public ModuleSetup matchByName(final String simpleClassName) {
+                        return matchByPattern(compile(quote(simpleClassName)));
+                    }
+                };
+            }
+
+            @Override
+            public ModuleSetup none() {
+                return ModuleSetupImpl.this;
+            }
+        };
 
 
 

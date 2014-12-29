@@ -2,6 +2,8 @@ package org.micromodules.control.analyze;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
+import org.micromodules.setup.Contract;
+import org.micromodules.setup.Implementation;
 import org.micromodules.setup.Module;
 
 import java.io.IOException;
@@ -23,6 +25,10 @@ abstract class Abstract20Scan extends Abstract10Domain {
     private final List<ModuleSpec> moduleSpecSet = new ArrayList<>();
     private final Set<Class<?>> classSet = new LinkedHashSet<>();
     private final MapToSet<String, Class<?>> packageToClassMap = new MapToSet<>();
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    private final MapToSet<Class<? extends Module>,Class<?>> moduleToAnnotatedContractClassesMap = new MapToSet<>();
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    private final MapToSet<Class<? extends Module>,Class<?>> moduleToAnnotatedImplementationClassesMap = new MapToSet<>();
 
     protected Iterable<ModuleSetupImpl> listModuleSetup() {
         return checkNotNull(moduleSetupSet, "modules not scanned");
@@ -34,6 +40,16 @@ abstract class Abstract20Scan extends Abstract10Domain {
 
     protected Iterable<Class<?>> listClasses() {
         return checkNotNull(classSet, "modules not scanned");
+    }
+
+    @Override
+    ImmutableSet<Class<?>> getAnnotatedContractClasses(final Class<? extends Module> moduleClazz) {
+        return ImmutableSet.copyOf(moduleToAnnotatedContractClassesMap.get(moduleClazz));
+    }
+
+    @Override
+    ImmutableSet<Class<?>> getAnnotatedImplementationClasses(final Class<? extends Module> moduleClazz) {
+        return ImmutableSet.copyOf(moduleToAnnotatedImplementationClassesMap.get(moduleClazz));
     }
 
     protected void scan(final ImmutableSet<String> packagePrefixList) throws IOException, IllegalAccessException, InstantiationException {
@@ -51,6 +67,18 @@ abstract class Abstract20Scan extends Abstract10Domain {
                     }
                     packageToClassMap.get(classInfo.getPackageName()).add(clazz);
                     classSet.add(clazz);
+                    { //Contract annotation
+                        final Contract contract = clazz.getAnnotation(Contract.class);
+                        if (contract!=null) {
+                            moduleToAnnotatedContractClassesMap.get(contract.value()).add(clazz);
+                        }
+                    }
+                    { //Implementation annotation
+                        final Implementation implementation = clazz.getAnnotation(Implementation.class);
+                        if (implementation!=null){
+                            moduleToAnnotatedImplementationClassesMap.get(implementation.value()).add(clazz);
+                        }
+                    }
                     break;
                 }
             }

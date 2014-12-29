@@ -11,13 +11,17 @@ import java.io.IOException;
  *         Created: 2014-11-14 9:56 PM
  */
 public class Main {
-    public static void main(final String[] args) throws IOException {
+    public static void main(final String... args)  {
         final ModulesAnalyzer analyzer = new ModulesAnalyzer();
         analyzer.setDir(new File(System.getProperty("micro.out_dir", ".micro-report")));
         analyzer.setRenderGraphToPng(Boolean.parseBoolean(System.getProperty("micro.render_graph_to_png", "false")));
         final File reportIndexFile = analyzer.analyzeToDir(args);
-        if (Boolean.parseBoolean(System.getProperty("micro.open_index", "false"))) {
-            Desktop.getDesktop().open(reportIndexFile);
+        if (Boolean.parseBoolean(System.getProperty("micromodules.open_index", "false"))) {
+            try {
+                Desktop.getDesktop().open(reportIndexFile);
+            } catch (final IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

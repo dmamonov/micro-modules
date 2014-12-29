@@ -8,4 +8,8 @@ import org.micromodules.setup.Implementation;
  */
 @Implementation(__module__.Business1Module.class)
 public class Business1AnnotatedImpl {
+
+    private class SubImplementationInBusiness1AnnotatedImpl{
+
+    }
 }
