@@ -17,6 +17,10 @@ abstract class Abstract00Core {
 
     abstract ImmutableSet<Class<?>> getAnnotatedImplementationClasses(Class<? extends Module> moduleClazz);
 
+    abstract ImmutableSet<String> getClassSubclasses(final Class<?> clazz);
+
+    abstract Class<?> getClassByName(final String className);
+
     protected static <T> Predicate<T> and(final Predicate<T> left, final Predicate<T> right) {
         return new Predicate<T>() {
             @Override

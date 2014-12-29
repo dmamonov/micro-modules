@@ -10,9 +10,9 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -23,7 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 abstract class Abstract20Scan extends Abstract10Domain {
     private final List<ModuleSetupImpl> moduleSetupSet = new ArrayList<>();
     private final List<ModuleSpec> moduleSpecSet = new ArrayList<>();
-    private final Set<Class<?>> classSet = new LinkedHashSet<>();
+    private final Map<String, Class<?>> classMap = new HashMap<>();
     private final MapToSet<String, Class<?>> packageToClassMap = new MapToSet<>();
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final MapToSet<Class<? extends Module>,Class<?>> moduleToAnnotatedContractClassesMap = new MapToSet<>();
@@ -35,11 +35,15 @@ abstract class Abstract20Scan extends Abstract10Domain {
     }
 
     protected Iterable<ModuleSpec> listModuleSpec() {
-        return checkNotNull(moduleSpecSet, "modules not scanned");
+        return moduleSpecSet;
     }
 
     protected Iterable<Class<?>> listClasses() {
-        return checkNotNull(classSet, "modules not scanned");
+        return classMap.values();
+    }
+
+    protected Class<?> getClassByName(final String className) {
+        return classMap.get(className);
     }
 
     @Override
@@ -66,7 +70,7 @@ abstract class Abstract20Scan extends Abstract10Domain {
                         modules.add((Class<? extends Module>)clazz);
                     }
                     packageToClassMap.get(classInfo.getPackageName()).add(clazz);
-                    classSet.add(clazz);
+                    classMap.put(clazz.getName(), clazz);
                     { //Contract annotation
                         final Contract contract = clazz.getAnnotation(Contract.class);
                         if (contract!=null) {

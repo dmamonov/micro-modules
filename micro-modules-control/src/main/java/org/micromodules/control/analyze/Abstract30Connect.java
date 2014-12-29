@@ -23,6 +23,8 @@ abstract class Abstract30Connect extends Abstract20Scan {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final MapToSet<String, String> classToDependencyClassMap = new MapToSet<>();
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    private final MapToSet<String, String> classToNestedClassMap = new MapToSet<>();
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final MapToSet<String, String> moduleToDependencyModuleMap = new MapToSet<>();
 
 
@@ -74,7 +76,7 @@ abstract class Abstract30Connect extends Abstract20Scan {
                             if (nestedClasses != null) {
                                 for (final CtClass nestedCtClass : nestedClasses) {
                                     addClassAsNode(nestedCtClass, trackAs);
-                                    classContainsClassesMap.get(ctClass.getName()).add(nestedCtClass.getName());
+                                    classContainsClassesMap.get(trackAs.getName()).add(nestedCtClass.getName());
                                 }
                             }
                         }

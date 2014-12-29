@@ -1,5 +1,6 @@
 package org.micromodules.control.analyze;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -144,6 +145,7 @@ abstract class Abstract10Domain extends Abstract00Core {
                             for (final Class<?> clazz : classesInPackage) {
                                 if (regexp.matcher(clazz.getSimpleName().replace("[$].*","")).matches()) {
                                     classesSet.add(clazz);
+                                    classesSet.addAll(Collections2.transform(getClassSubclasses(clazz), Abstract10Domain.this::getClassByName));
                                     matched = true;
                                 }
                             }
