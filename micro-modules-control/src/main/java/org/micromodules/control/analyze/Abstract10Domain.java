@@ -56,7 +56,7 @@ abstract class Abstract10Domain extends Abstract00Core {
             return getModule().getName();
         }
         Class<? extends Module> getModule();
-        String getTitle();
+
         boolean isDeprecated();
         ImmutableList<String>  getComments();
         ImmutableSet<Class<?>> getImplementationClasses();
@@ -198,9 +198,6 @@ abstract class Abstract10Domain extends Abstract00Core {
         protected ModuleSpec createSpec() {
             return new ModuleSpec() {
                 private final Class<? extends Module> module = ModuleSetupImpl.this.moduleClass;
-                private final String name = ModuleSetupImpl.this.name!=null
-                        ? ModuleSetupImpl.this.name
-                        : ModuleSetupImpl.this.moduleClass.getName();
                 private final String deprecated = ModuleSetupImpl.this.deprecated;
                 private final ImmutableList<String> comments = ImmutableList.copyOf(ModuleSetupImpl.this.comments);
                 private final ImmutableSet<Class<?>> contractClasses = ImmutableSet.copyOf(Sets.difference(
@@ -219,11 +216,6 @@ abstract class Abstract10Domain extends Abstract00Core {
                 @Override
                 public Class<? extends Module> getModule() {
                     return module;
-                }
-
-                @Override
-                public String getTitle() {
-                    return this.name;
                 }
 
                 @Override
