@@ -1,4 +1,4 @@
-package org.micromodules.control.analyze;
+package org.micromodules.control.graph;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DirectedMaskSubgraph;
 import org.jgrapht.graph.MaskFunctor;
+import org.micromodules.control.graph.GraphDomain.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,16 +19,16 @@ import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.collect.ImmutableSet.copyOf;
 import static com.google.common.collect.ImmutableSet.of;
 import static com.google.common.collect.Iterables.*;
-import static org.micromodules.control.analyze.Abstract37GraphQuery.GraphDirection.Backward;
-import static org.micromodules.control.analyze.Abstract37GraphQuery.GraphDirection.Forward;
-
+import static org.micromodules.control.graph.GraphQuery.GraphDirection.Backward;
+import static org.micromodules.control.graph.GraphQuery.GraphDirection.Forward;
+import static org.micromodules.control.util.Predicates2.or;
 
 /**
  * @author dmitry.mamonov
- *         Created: 2014-12-27 2:55 PM
+ *         Created: 2014-12-29 3:54 PM
  */
-public class Abstract37GraphQuery extends Abstract35Graph {
-    interface GraphPathStart {
+public class GraphQuery  {
+    public interface GraphPathStart {
         GraphPathDirection from(Node node);
 
         @SuppressWarnings("UnusedDeclaration")
@@ -36,7 +37,7 @@ public class Abstract37GraphQuery extends Abstract35Graph {
         GraphPathDirection from(Predicate<Node> nodeFilter);
     }
 
-    interface GraphPathDirection {
+    public interface GraphPathDirection {
         GraphPathEdgeFilter forward();
 
         GraphPathEdgeFilter backward();
@@ -44,25 +45,25 @@ public class Abstract37GraphQuery extends Abstract35Graph {
         ImmutableSet<Node> getStartSet();
     }
 
-    interface GraphPathEdgeFilter extends GraphPathNodeFilter {
+    public interface GraphPathEdgeFilter extends GraphPathNodeFilter {
         GraphPathEdgeFilter by(Predicate<NodeEdge> edgeFilter);
     }
 
-    interface GraphPathNodeFilter extends GraphPathStep {
+    public interface GraphPathNodeFilter extends GraphPathStep {
         GraphPathNodeFilter to(Predicate<Node> nodeFilter);
     }
 
-    interface GraphPathStep {
+    public interface GraphPathStep {
         GraphPathBacktrace recursive();
 
         GraphPathBacktrace single();
     }
 
-    interface GraphPathBacktrace extends GraphPathFinish {
+    public interface GraphPathBacktrace extends GraphPathFinish {
         GraphPathFinish backtrace();
     }
 
-    interface GraphPathFinish {
+    public interface GraphPathFinish {
         GraphPathFinish filterStart(Predicate<Node> predicate);
         default GraphPathFinish useStart() {
             return filterStart(alwaysTrue());
@@ -90,12 +91,7 @@ public class Abstract37GraphQuery extends Abstract35Graph {
         GraphPathDirection then();
     }
 
-
-    final GraphPathStart start() {
-        return start(getCompleteGraph()) ;
-    }
-
-    enum GraphDirection {
+    protected enum GraphDirection {
         Forward {
             @Override
             Set<NodeEdge> go(final DirectedGraph<Node, NodeEdge> g, final Node fromNode) {
@@ -136,7 +132,7 @@ public class Abstract37GraphQuery extends Abstract35Graph {
         abstract Node from(NodeEdge edge);
     }
 
-    private GraphPathStart start(final DirectedGraph<Node, NodeEdge> dg) {
+    public static GraphPathStart start(final DirectedGraph<Node, NodeEdge> dg) {
         return new GraphPathStart() {
             @Override
             public GraphPathDirection from(final Node node) {
@@ -417,4 +413,5 @@ public class Abstract37GraphQuery extends Abstract35Graph {
             }
         };
     }
+
 }

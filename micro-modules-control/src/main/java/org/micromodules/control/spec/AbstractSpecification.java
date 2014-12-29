@@ -1,9 +1,9 @@
-package org.micromodules.control.analyze;
+package org.micromodules.control.spec;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.micromodules.control.scan.ClasspathRelations;
 import org.micromodules.setup.ClassesFilter;
 import org.micromodules.setup.ClassesPattern;
 import org.micromodules.setup.DependenciesSetup;
@@ -11,7 +11,6 @@ import org.micromodules.setup.Module;
 import org.micromodules.setup.ModuleSetup;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,52 +23,12 @@ import static java.util.regex.Pattern.quote;
 
 /**
  * @author dmitry.mamonov
- *         Created: 2014-12-25 5:23 PM
+ *         Created: 2014-12-29 5:26 PM
  */
-abstract class Abstract10Domain extends Abstract00Core {
-    class MapToSet<K, V> extends LinkedHashMap<K, Set<V>> {
-        @Override
-        public Set<V> get(final Object key) {
-            final Set<V> value = super.get(key);
-            if (value!=null){
-                return value;
-            } else {
-                final Set<V> newValue = new LinkedHashSet<V>(){
-                    @Override
-                    public boolean add(final V o) {
-                        //noinspection SimplifiableIfStatement
-                        if (o!=null) {
-                            return super.add(o);
-                        } else {
-                            return false;
-                        }
-                    }
-                };
-                //noinspection unchecked
-                super.put((K)key, newValue);
-                return newValue;
-            }
-        }
-    }
-
-    interface ModuleSpec {
-        default String getId(){
-            return getModule().getName();
-        }
-        Class<? extends Module> getModule();
-
-        boolean isDeprecated();
-        ImmutableList<String>  getComments();
-        ImmutableSet<Class<?>> getImplementationClasses();
-        ImmutableSet<Class<?>> getContractClasses();
-        ImmutableSet<Class<?>> getAllClasses();
-        ImmutableSet<String> getActualDependencies();
-        ImmutableSet<Class<? extends Module>> getAllowedDependencies();
-    }
-
-    class ModuleSetupImpl implements ModuleSetup {
+abstract class AbstractSpecification {
+    protected static class ModuleSetupImpl implements ModuleSetup {
         private Class<? extends Module> moduleClass;
-        private final MapToSet<String, Class<?>> classesByPackage;
+        private final ClasspathRelations classpathRelations;
         private final String name;
         private String deprecated = null;
         private final List<String> comments = new ArrayList<>();
@@ -80,14 +39,16 @@ abstract class Abstract10Domain extends Abstract00Core {
         private final Set<Class<?>> implementationExclude = new LinkedHashSet<>();
         private final Set<Class<? extends Module>> allowedDependencies = new LinkedHashSet<>();
 
-        public ModuleSetupImpl(final Class<? extends Module> moduleClass, final MapToSet<String, Class<?>> classesByPackage) {
+        public ModuleSetupImpl(final Class<? extends Module> moduleClass, final ClasspathRelations classpathRelations) {
             this.moduleClass = checkNotNull(moduleClass);
-            this.classesByPackage = checkNotNull(classesByPackage);
+            this.classpathRelations = checkNotNull(classpathRelations);
             this.name = moduleClass.getName();
-            getAnnotatedContractClasses(this.moduleClass).forEach(contractClazz ->
+
+            classpathRelations.getModuleToAnnotatedContractClasses(moduleClass).forEach(contractClazz ->
                     new ClassesFilterImpl(contractClazz.getPackage().getName(), contractInclude, contractExclude)
                             .include().matchByName(contractClazz.getSimpleName()));
-            getAnnotatedImplementationClasses(this.moduleClass).forEach(implementationClazz ->
+
+            classpathRelations.getModuleToAnnotatedImplementationClasses(moduleClass).forEach(implementationClazz ->
                     new ClassesFilterImpl(implementationClazz.getPackage().getName(), implementationInclude, implementationExclude)
                             .include().matchByName(implementationClazz.getSimpleName()));
         }
@@ -139,17 +100,16 @@ abstract class Abstract10Domain extends Abstract00Core {
                     @Override
                     public ModuleSetup matchByPattern(final Pattern regexp) {
 
-                        final Set<Class<?>> classesInPackage = classesByPackage.get(basePackageName);
+                        final Set<Class<?>> classesInPackage = classpathRelations.getPackageToClasses(basePackageName);
                         if (classesInPackage != null) {
                             boolean matched = false;
                             for (final Class<?> clazz : classesInPackage) {
-                                if (regexp.matcher(clazz.getSimpleName().replace("[$].*","")).matches()) {
+                                if (regexp.matcher(clazz.getName().replaceAll("^.*[.]","").replaceAll("[$].*","")).matches()) {
                                     classesSet.add(clazz);
-                                    classesSet.addAll(Collections2.transform(getClassSubclasses(clazz), Abstract10Domain.this::getClassByName));
                                     matched = true;
                                 }
                             }
-                            checkState(matched, "Nothing matched to pattern: " + regexp + " of module " + moduleClass.getName());
+                            checkState(matched, "Nothing matched to pattern: " + regexp + " of module " + moduleClass.getName()+" in package "+basePackageName);
                         }
                         return ModuleSetupImpl.this;
                     }
@@ -266,11 +226,6 @@ abstract class Abstract10Domain extends Abstract00Core {
                 }
 
                 @Override
-                public ImmutableSet<String> getActualDependencies() {
-                    return getModuleDependencies(getId());
-                }
-
-                @Override
                 public ImmutableSet<Class<? extends Module>> getAllowedDependencies() {
                     return ImmutableSet.copyOf(ModuleSetupImpl.this.allowedDependencies);
                 }
@@ -292,5 +247,29 @@ abstract class Abstract10Domain extends Abstract00Core {
                     '}';
         }
     }
+
+     /*
+
+
+    private final Map<String, String> classToModuleMap = new HashMap<>();
+
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    private final MapToSet<String, String> classToNestedClassMap = new MapToSet<>();
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    private final MapToSet<String, String> moduleToDependencyModuleMap = new MapToSet<>();
+
+
+
+
+    private final List<ModuleSetupImpl> moduleSetupSet = new ArrayList<>();
+
+    protected Iterable<ModuleSetupImpl> listModuleSetup() {
+        return checkNotNull(moduleSetupSet, "modules not scanned");
+    }
+
+    protected Iterable<ModuleSpec> listModuleSpec() {
+        return moduleSpecSet;
+    }
+    */
 
 }

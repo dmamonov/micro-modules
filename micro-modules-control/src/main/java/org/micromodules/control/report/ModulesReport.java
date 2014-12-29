@@ -1,43 +1,59 @@
-package org.micromodules.control.analyze;
+package org.micromodules.control.report;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.jatl.Html;
 import org.jgrapht.DirectedGraph;
+import org.micromodules.control.analyze.ModulesAnalyzer;
+import org.micromodules.control.graph.GraphDomain.Node;
+import org.micromodules.control.graph.GraphDomain.NodeEdge;
+import org.micromodules.control.graph.GraphQuery;
+import org.micromodules.control.graph.GraphRenderer;
+import org.micromodules.control.graph.ModulesGraph;
+import org.micromodules.control.spec.ModuleSpec;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.ImmutableSet.copyOf;
 import static com.google.common.collect.Iterables.filter;
-import static org.micromodules.control.analyze.Abstract35Graph.EdgeType.*;
-import static org.micromodules.control.analyze.Abstract35Graph.NodeType.*;
+import static org.micromodules.control.graph.GraphDomain.EdgeType.*;
+import static org.micromodules.control.graph.GraphDomain.NodeType.*;
+import static org.micromodules.control.util.Predicates2.and;
 
 /**
  * @author dmitry.mamonov
- *         Created: 2014-12-25 5:23 PM
+ *         Created: 2014-12-29 4:01 PM
  */
-abstract class Abstract40Report extends Abstract38GraphRenderer {
-    private File dir;
+public class ModulesReport extends AbstractReport{
+    private final ModulesGraph graph;
+    private final ModulesAnalyzer analyzer;
+    private final GraphRenderer renderer;
 
-    public final void setDir(final File dir) {
-        this.dir = dir;
+    public static ModulesReport createFrom(final ModulesGraph graph, final ModulesAnalyzer analyzer, final GraphRenderer renderer){
+        return new ModulesReport(graph, analyzer, renderer);
     }
 
-    protected File report() throws IOException {
+    private ModulesReport(final ModulesGraph graph, final ModulesAnalyzer analyzer, final GraphRenderer renderer) {
+        checkNotNull(graph, "graph required");
+        checkNotNull(analyzer, "analyzer required");
+        checkNotNull(renderer, "renderer required");
+        this.graph = graph;
+        this.analyzer = analyzer;
+        this.renderer = renderer;
+    }
+
+    public File generateReportTo(final File dir)throws IOException {
         if (!dir.isDirectory()) {
             checkState(dir.mkdirs(), "Failed to make dir: %s", dir);
         }
-
-//        export(graphScanner().startList(ModuleNode).build(), dir, "index-modules");
 
         final File indexFile = new File(dir, "index.html");
         try (final Writer indexWriter = new FileWriter(indexFile)) {
@@ -52,7 +68,7 @@ abstract class Abstract40Report extends Abstract38GraphRenderer {
                     if (true) {
                         new TableReport<Node>("All Modules Report")
                                 .addColumn("Module", (html, node) -> {
-                                    final ModuleSpec spec = getModuleSpecByNode(node);
+                                    final ModuleSpec spec = graph.getModuleSpecByNode(node);
                                     if (spec.isDeprecated()) {
                                         html.s();
                                     }
@@ -62,12 +78,12 @@ abstract class Abstract40Report extends Abstract38GraphRenderer {
                                     }
                                     html.br();
                                     listGraph(html,
-                                            start().from(node).forward().by(SubModule).to(ModuleNode).single().graph(),
+                                            graph.query().from(node).forward().by(SubModule).to(ModuleNode).single().graph(),
                                             and(not(node), ModuleNode),
                                             "Sub Modules"
                                     );
                                     listGraph(html,
-                                            start().from(node).forward().by(DependsOn).to(ModuleNode).single()
+                                            graph.query().from(node).forward().by(DependsOn).to(ModuleNode).single()
                                                     .useStart().then().backward().by(DependsOn).to(ModuleNode).single()
                                                     .unmaskedEdgesGraph(),
                                             and(not(node), ModuleNode),
@@ -76,26 +92,26 @@ abstract class Abstract40Report extends Abstract38GraphRenderer {
                                     html.br();
                                 })
                                 .addColumn("Comment", (html, node) -> {
-                                    final ModuleSpec spec = getModuleSpecByNode(node);
+                                    final ModuleSpec spec = graph.getModuleSpecByNode(node);
                                     spec.getComments().forEach(commentLine -> html.text(commentLine).br());
                                 })
                                 .addColumn("Contract", (html, node) -> {
                                     listGraph(html,
-                                            start().from(node).forward().by(Contract).to(CodeNode).single().graph(),
+                                            graph.query().from(node).forward().by(Contract).to(CodeNode).single().unmaskedEdgesGraph(),
                                             CodeNode);
 
                                 })
                                 .addColumn("Implementation", (html, node) -> {
                                     listGraph(html,
-                                            start().from(node).forward().by(Implementation).to(CodeNode).single().graph(),
+                                            graph.query().from(node).forward().by(Implementation).to(CodeNode).single().unmaskedEdgesGraph(),
                                             CodeNode);
                                 })
                                 .addColumn("DependsOn", (html, node) -> {
                                     listGraph(html,
-                                            start().from(node).forward().by(DependsOn).to(ModuleNode).single().graph(),
+                                            graph.query().from(node).forward().by(DependsOn).to(ModuleNode).single().graph(),
                                             not(node),
                                             "Direct Dependencies");
-                                    final GraphPathBacktrace sumModulesQuery = start().from(node).forward().by(SubModule).to(ModuleNode).recursive();
+                                    final GraphQuery.GraphPathBacktrace sumModulesQuery = graph.query().from(node).forward().by(SubModule).to(ModuleNode).recursive();
                                     final ImmutableSet<Node> subModulesSet = sumModulesQuery.set();
                                     listGraph(html, sumModulesQuery.then().forward().by(DependsOn).to(ModuleNode).single().unmaskedEdgesGraph(),
                                             and(not(in(subModulesSet)), ModuleNode),
@@ -104,13 +120,13 @@ abstract class Abstract40Report extends Abstract38GraphRenderer {
                                 })
                                 .addColumn("UsedBy", (html, node) -> {
                                     listGraph(html,
-                                            start().from(node).backward().by(DependsOn).to(ModuleNode).single().graph(),
+                                            graph.query().from(node).backward().by(DependsOn).to(ModuleNode).single().graph(),
                                             not(node),
                                             "Direct Usages");
                                 })
                                 .addColumn("JarDependencies", (html, node) -> {
                                     listGraph(html,
-                                            start()
+                                            graph.query()
                                                     .from(node).forward().by(Implementation).by(Contract).to(CodeNode).single()
                                                     .useFinish().then().forward().by(Uses).to(JarNode).single().graph(),
                                             JarNode);
@@ -118,12 +134,13 @@ abstract class Abstract40Report extends Abstract38GraphRenderer {
                                 })
                                 .addColumn("Problems", (html, node) -> {
                                     listGraph(html,
-                                            start().from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
+                                            graph.query()
+                                                    .from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
                                                     .useFinish().then().forward().by(Uses).to(CodeNode).single()
                                                     .useFinish().then().backward().by(Contract).by(Implementation).to(
                                                     and(
                                                             not(in(
-                                                                    start().from(node).backward().by(SubModule).to(ModuleNode).recursive()
+                                                                    graph.query().from(node).backward().by(SubModule).to(ModuleNode).recursive()
                                                                             .then().forward().by(AllowedDependency).to(ModuleNode).single()
                                                                             .useFinish().then().forward().by(SubModule).to(ModuleNode).single()
                                                                             .useFinish().set()
@@ -134,20 +151,22 @@ abstract class Abstract40Report extends Abstract38GraphRenderer {
                                             and(not(node), ModuleNode),
                                             "Dependency rule violation");
                                     listGraph(html,
-                                            start().from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
+                                            graph.query()
+                                                    .from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
                                                     .useFinish().then().forward().by(Uses).to(CodeNode).single()
                                                     .useFinish().then().backward().by(Implementation).to(and(not(node), ModuleNode)).single()
                                                     .backtrace().graph(),
                                             and(not(node), ModuleNode),
                                             "Contract rule violation");
                                     listGraph(html,
-                                            start().from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
+                                            graph.query()
+                                                    .from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
                                                     .useFinish().then().backward().by(Contract).by(Implementation).to(and(not(node), ModuleNode)).single()
                                                     .backtrace().graph(),
                                             and(not(node), ModuleNode),
                                             "Collision rule violation");
                                 })
-                                .render(index, filter(getCompleteGraph().vertexSet(), ModuleNode));
+                                .render(index, graph.query().from(ModuleNode).getStartSet());
                     }
 
                     //noinspection ConstantIfStatement,ConstantConditions
@@ -169,7 +188,7 @@ abstract class Abstract40Report extends Abstract38GraphRenderer {
                                             CodeNode);
                                             */
                                 })
-                                .render(index, start().from(JarNode).getStartSet());
+                                .render(index, graph.query().from(JarNode).getStartSet());
                     }
                 }
 
@@ -195,7 +214,7 @@ abstract class Abstract40Report extends Abstract38GraphRenderer {
                 }
 
                 private void renderGraph(final Html html, final DirectedGraph<Node, NodeEdge> graph, final String title) {
-                    final File svgFile = export(graph, dir, "" + imgIndex.incrementAndGet());
+                    final File svgFile = renderer.export(graph, dir, "" + imgIndex.incrementAndGet());
                     html.a().attr("target", "_new").attr("href", svgFile.getName()).text(title).end();
                 }
 
@@ -205,68 +224,6 @@ abstract class Abstract40Report extends Abstract38GraphRenderer {
         return indexFile;
     }
 
-    protected static class TableReport<T> {
-        private final String title;
-        private final List<TableColumn<T>> columnList = new ArrayList<>();
-
-        public TableReport(final String title) {
-            this.title = title;
-        }
-
-        public TableReport<T> addColumn(final String title, final TableCellRenderer<T> cellRenderer) {
-            this.columnList.add(new TableColumn<>(title, cellRenderer));
-            return this;
-        }
-
-        public void render(final Html html, final Iterable<T> rowList) {
-            //noinspection SpellCheckingInspection
-            html.table()
-                    .attr("border", "1px")
-                    .attr("cellpadding", "0").
-                    attr("cellspacing", "0");
-            html.caption().text(this.title).end();
-            {
-                html.tr();
-                columnList.forEach(column -> html.th().text(column.getTitle()).end());
-                for (final T row : rowList) {
-                    html.tr();
-                    columnList.forEach(column -> {
-                        html.td().attr("nowrap", "true").attr("valign", "top");
-                        if (column.getCellRenderer() != null) {
-                            column.getCellRenderer().render(html, row);
-                        }
-                        html.end();
-                    });
-                    html.end();
-                }
-                html.end();
-            }
-            html.end();
-        }
-
-        public static interface TableCellRenderer<T> {
-            void render(Html html, T node);
-        }
-
-        private static class TableColumn<T> {
-            private final String title;
-            private final TableCellRenderer<T> cellRenderer;
-
-            private TableColumn(final String title, final TableCellRenderer<T> cellRenderer) {
-                this.title = title;
-                this.cellRenderer = cellRenderer;
-            }
-
-            public String getTitle() {
-                return title;
-            }
-
-            public TableCellRenderer<T> getCellRenderer() {
-                return cellRenderer;
-            }
-        }
-
-    }
 
 
 }

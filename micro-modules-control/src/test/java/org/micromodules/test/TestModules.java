@@ -9,8 +9,8 @@ import org.micromodules.control.Main;
  */
 public class TestModules {
     @Test
-    public void testModules() {
-        System.setProperty("micromodules.open_index","true");
+    public void testControlReport() {
+        System.setProperty("micromodules.open_index", "true");
         Main.main("org.micromodules.test");
     }
 }
