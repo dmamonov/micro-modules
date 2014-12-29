@@ -1,6 +1,6 @@
 package org.micromodules.control.spec;
 
-import org.micromodules.setup.Module;
+import org.micromodules.control.__modules__.ControlSuperModule;
 import org.micromodules.setup.ModuleSetup;
 
 /**
@@ -9,7 +9,7 @@ import org.micromodules.setup.ModuleSetup;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class __modules__ {
-    public static class SpecificationModule implements Module {
+    public static class SpecificationModule extends ControlSuperModule {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("setup interface impl.")

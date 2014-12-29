@@ -1,6 +1,6 @@
 package org.micromodules.control.graph;
 
-import org.micromodules.setup.Module;
+import org.micromodules.control.__modules__.ControlSuperModule;
 import org.micromodules.setup.ModuleSetup;
 
 /**
@@ -9,7 +9,7 @@ import org.micromodules.setup.ModuleSetup;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class __modules__ {
-    public static class ModulesGraphModule implements Module {
+    public static class ModulesGraphModule extends ControlSuperModule {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("Modules graph");

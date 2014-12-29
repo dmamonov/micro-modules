@@ -1,6 +1,6 @@
 package org.micromodules.control.util;
 
-import org.micromodules.setup.Module;
+import org.micromodules.control.__modules__.ControlSuperModule;
 import org.micromodules.setup.ModuleSetup;
 
 /**
@@ -9,7 +9,7 @@ import org.micromodules.setup.ModuleSetup;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class __modules__ {
-    public static class UtilModule implements Module {
+    public static class UtilModule extends ControlSuperModule {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("Logic not found in core libraries");
