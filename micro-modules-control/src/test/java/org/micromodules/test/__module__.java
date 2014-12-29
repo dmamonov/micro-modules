@@ -26,8 +26,8 @@ public class __module__ {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("Common logic layer")
-                    .dependencies().allow(StandaloneLayer.class)
-                    .dependencies().allow(CommonLayer.class);
+                    .dependencies().grant(StandaloneLayer.class)
+                    .dependencies().grant(CommonLayer.class);
         }
     }
 
@@ -35,9 +35,9 @@ public class __module__ {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("Business layer")
-                    .dependencies().allow(StandaloneLayer.class)
-                    .dependencies().allow(CommonLayer.class)
-                    .dependencies().allow(BusinessLayer.class);
+                    .dependencies().grant(StandaloneLayer.class)
+                    .dependencies().grant(CommonLayer.class)
+                    .dependencies().grant(BusinessLayer.class);
         }
     }
 
@@ -45,9 +45,9 @@ public class __module__ {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("User interface layer")
-                    .dependencies().allow(StandaloneLayer.class)
-                    .dependencies().allow(CommonLayer.class)
-                    .dependencies().allow(BusinessLayer.class)
+                    .dependencies().grant(StandaloneLayer.class)
+                    .dependencies().grant(CommonLayer.class)
+                    .dependencies().grant(BusinessLayer.class)
                     .comment("UI components must be independent");
         }
     }

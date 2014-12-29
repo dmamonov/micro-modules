@@ -24,7 +24,7 @@ import java.util.Set;
  * @author dmitry.mamonov
  *         Created: 2014-12-29 3:48 PM
  */
-@Contract(__modules__.ScannerModule.class)
+@Contract(__modules__.ClasspathModule.class)
 public class ClasspathRelations {
     private final ImmutableSet<Class<? extends Module>> modulesSet;
     private final ImmutableSet<Class<?>> classesSet;

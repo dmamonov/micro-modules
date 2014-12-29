@@ -36,6 +36,7 @@ public class Main {
 
         if (Boolean.parseBoolean(System.getProperty("micromodules.open_index", "false"))) {
             try {
+                System.out.println("open: "+reportIndexFile.getAbsolutePath());
                 Desktop.getDesktop().open(reportIndexFile);
             } catch (final IOException e) {
                 throw new RuntimeException(e);

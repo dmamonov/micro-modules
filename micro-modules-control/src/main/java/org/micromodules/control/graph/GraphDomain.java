@@ -49,7 +49,8 @@ public final class GraphDomain {
         UsesClass,
         Dependency,
         NotAllowed,
-        Allowed(true),
+        Allowed,
+        Granted(true),
         RequiredDependency,
         ContractClass,
         ImplementationClass,
@@ -186,12 +187,16 @@ public final class GraphDomain {
             return name;
         }
 
+        public String getSimpleName() {
+            return name.replaceAll("^.*[.$]", "")+":"+type.name().replace("Node","");
+        }
+
         public NodeType getType() {
             return type;
         }
 
         public void appendToHtml(final Html html) {
-            html.span().attr("title", toString()).text(name.replaceAll("^.*[.$]", "")).end();
+            html.span().attr("title", toString()).text(getSimpleName()).end();
         }
 
         @Override

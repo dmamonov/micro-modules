@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import org.micromodules.control.graph.GraphDomain.Node;
 import org.micromodules.control.graph.GraphQuery.GraphPathFinish;
 import org.micromodules.control.graph.ModulesGraph;
+import org.micromodules.setup.Contract;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.in;
@@ -16,7 +17,7 @@ import static org.micromodules.control.util.Predicates2.and;
  * @author dmitry.mamonov
  *         Created: 2014-12-29 5:52 PM
  */
-@org.micromodules.setup.Contract(__modules__.AnalyzeModule.class)
+@Contract(__modules__.AnalyzeModule.class)
 public class ModulesAnalyzer {
     private final ModulesGraph graph;
 
@@ -74,26 +75,30 @@ public class ModulesAnalyzer {
 
 
     public GraphPathFinish getModuleDependencyRuleViolation(final Node module) {
-        final GraphPathFinish superModules = getSuperModules(module);
-        final ImmutableSet<Node> superModulesSet = superModules.set(ModuleNode);
-        return graph.query()
-                .from(module).forward().by(ContractClass).by(ImplementationClass).to(CodeNode).single()
-                .useFinish().then().forward().by(UsesClass).to(CodeNode).single()
-                .useFinish().then().backward().by(ContractClass).by(ImplementationClass).to(
-                        and(
-                                not(in(
-                                        superModules
-                                                .then().forward().by(Allowed).to(ModuleNode).single()
-                                                .useFinish().then().forward().by(SubModule).to(ModuleNode).single()
-                                                .set(and(ModuleNode, not(in(superModulesSet))))
-                                )),
-                                not(module)
-                        )
-                ).single().backtrace();
+        if (false) {
+            final GraphPathFinish superModules = getSuperModules(module);
+            final ImmutableSet<Node> superModulesSet = superModules.set(ModuleNode);
+            return graph.query()
+                    .from(module).forward().by(ContractClass).by(ImplementationClass).to(CodeNode).single()
+                    .useFinish().then().forward().by(UsesClass).to(CodeNode).single()
+                    .useFinish().then().backward().by(ContractClass).by(ImplementationClass).to(
+                            and(
+                                    not(in(
+                                            superModules
+                                                    .then().forward().by(Granted).to(ModuleNode).single()
+                                                    .useFinish().then().forward().by(SubModule).to(ModuleNode).single()
+                                                    .set(and(ModuleNode, not(in(superModulesSet))))
+                                    )),
+                                    not(module)
+                            )
+                    ).single().backtrace();
+        } else {
+            return graph.query().from(module).forward().by(Dependency.and(NotAllowed)).to(ModuleNode).single();
+        }
     }
     public GraphPathFinish getModuleAllowedDependencies(final Node module){
         final ImmutableSet<Node> superModulesSet = getSuperModules(module).set(ModuleNode);
-        return graph.query().from(superModulesSet).forward().by(Allowed).to(ModuleNode).single().useFinish();
+        return graph.query().from(superModulesSet).forward().by(Granted).to(ModuleNode).single().useFinish();
     }
 
 

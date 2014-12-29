@@ -64,7 +64,7 @@ public class ModulesReport extends AbstractReport{
                 @Override
                 public void run() {
                     final File allModulesGraph = renderer.export(graph.query().from(ModuleNode).forward().to(ModuleNode).single().unmaskedEdgesGraph(), dir, "all-modules");
-                    index.img().attr("src",allModulesGraph.getName()).end();
+                    index.img().attr("src",allModulesGraph.getName()).attr("width","1200px").end();
 
                     //noinspection ConstantConditions,ConstantIfStatement
                     if (true) {

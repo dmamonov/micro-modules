@@ -8,7 +8,7 @@ import org.micromodules.setup.ModuleSetup;
  *         Created: 2014-12-24 4:58 PM
  */
 @SuppressWarnings("UnusedDeclaration")
-public class __modules__ {
+public interface  __modules__ {
     public static class UtilModule extends ControlSuperModule {
         @Override
         public void setup(final ModuleSetup setup) {

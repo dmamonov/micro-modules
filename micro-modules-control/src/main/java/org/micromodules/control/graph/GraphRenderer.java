@@ -6,8 +6,6 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.ext.DOTExporter;
-import org.micromodules.control.scan.ClasspathRelations;
-import org.micromodules.control.spec.ModulesSpecification;
 import org.micromodules.setup.Contract;
 
 import java.io.File;
@@ -41,8 +39,8 @@ public class GraphRenderer {
     public File export(final DirectedGraph<GraphDomain.Node, GraphDomain.NodeEdge> g, final File dir, final String name) {
         final DOTExporter<GraphDomain.Node, GraphDomain.NodeEdge> exporter = new DOTExporter<>(
                 GraphDomain.Node::toString,
-                node -> null,
-                edge -> Joiner.on(",").join(edge.getTypes()),
+                GraphDomain.Node::getSimpleName,
+                edge -> Joiner.on(",\\n").join(edge.getTypes()),
                 node -> ImmutableMap.<String, String>builder().build(),
                 edge -> ImmutableMap.<String, String>builder().build()
         );
@@ -75,10 +73,4 @@ public class GraphRenderer {
         return svgFile;
 
     }
-
-
-    public static ModulesGraph createBySpecificationAndClasspathRelations(ModulesSpecification modulesSpecification, ClasspathRelations classpathRelations) {
-        return null;
-    }
-
 }

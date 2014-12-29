@@ -149,7 +149,7 @@ abstract class AbstractSpecification {
             //noinspection Convert2Lambda
             return new DependenciesSetup() {
                 @Override
-                public ModuleSetup allow(final Class<? extends Module> moduleClazz) {
+                public ModuleSetup grant(final Class<? extends Module> moduleClazz) {
                     ModuleSetupImpl.this.allowedDependencies.add(moduleClazz);
                     return ModuleSetupImpl.this;
                 }

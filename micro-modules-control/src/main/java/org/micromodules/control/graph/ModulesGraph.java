@@ -59,6 +59,9 @@ public class ModulesGraph {
             }
         });
         classpathRelations.getClassesSet().forEach(useClazz -> {
+            if (useClazz.getSimpleName().equals("__modules__") || (!useClazz.isInterface() && Module.class.isAssignableFrom(useClazz))){
+                return;
+            }
             final Node clazzNode = CodeNode.named(useClazz.getName());
             classpathRelations.getClassToDependencyClassMap().get(useClazz.getName()).forEach(dependencyClazzName -> {
                 final Node dependencyClazzNode = CodeNode.named(dependencyClazzName);
@@ -93,7 +96,7 @@ public class ModulesGraph {
             final Node moduleNode = ModuleNode.named(spec.getId());
             spec.getAllowedDependencies().forEach(allowedDependencyClazz -> {
                 final Node allowedDependencyNode = ModuleNode.named(allowedDependencyClazz.getName());
-                createEdge(moduleNode, Allowed, allowedDependencyNode);
+                createEdge(moduleNode, Granted, allowedDependencyNode);
             });
 
         });
@@ -139,10 +142,15 @@ public class ModulesGraph {
                 System.out.println("  Allowed dependencies: " + allowedDependencyModulesSet);
                 final ImmutableSet<Node> actualDependencySet = analyzer.getModuleDirectDependencies(module).useFinish().set(ModuleNode);
                 System.out.println("  Actual dependencies: " + actualDependencySet);
-                final Sets.SetView<Node> notAllowedDependenciesSet = Sets.difference(actualDependencySet, allowedDependencyModulesSet);
-                if (notAllowedDependenciesSet.size() > 0) {
-                    System.out.println("  Contains not allowed dependencies: " + notAllowedDependenciesSet);
-                    notAllowedDependenciesSet.forEach(dependencyModule -> createEdge(module, NotAllowed, dependencyModule));
+                final Sets.SetView<Node> notAllowedActualDependenciesSet = Sets.difference(actualDependencySet, allowedDependencyModulesSet);
+                if (notAllowedActualDependenciesSet.size() > 0) {
+                    System.out.println("  Contains not allowed dependencies: " + notAllowedActualDependenciesSet);
+                    notAllowedActualDependenciesSet.forEach(dependencyModule -> createEdge(module, NotAllowed, dependencyModule));
+                }
+                final Sets.SetView<Node> allowedActualDependenciesSet = Sets.intersection(actualDependencySet, allowedDependencyModulesSet);
+                if (allowedActualDependenciesSet.size() > 0) {
+                    System.out.println("  Contains allowed dependencies: " + allowedActualDependenciesSet);
+                    allowedActualDependenciesSet.forEach(dependencyModule -> createEdge(module, Allowed, dependencyModule));
                 }
             }
         });

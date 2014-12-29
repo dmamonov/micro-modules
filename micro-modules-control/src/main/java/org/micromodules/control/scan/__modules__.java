@@ -8,8 +8,8 @@ import org.micromodules.setup.ModuleSetup;
  *         Created: 2014-12-24 4:58 PM
  */
 @SuppressWarnings("UnusedDeclaration")
-public class __modules__ {
-    public static class ScannerModule extends ControlSuperModule {
+public interface  __modules__ {
+    public static class ClasspathModule extends ControlSuperModule {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("Scan classpath byte code structure");
