@@ -7,7 +7,6 @@ import org.jgrapht.DirectedGraph;
 import org.micromodules.control.analyze.ModulesAnalyzer;
 import org.micromodules.control.graph.GraphDomain.Node;
 import org.micromodules.control.graph.GraphDomain.NodeEdge;
-import org.micromodules.control.graph.GraphQuery;
 import org.micromodules.control.graph.GraphRenderer;
 import org.micromodules.control.graph.ModulesGraph;
 import org.micromodules.control.spec.ModuleSpec;
@@ -24,7 +23,6 @@ import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.ImmutableSet.copyOf;
 import static com.google.common.collect.Iterables.filter;
-import static org.micromodules.control.graph.GraphDomain.EdgeType.*;
 import static org.micromodules.control.graph.GraphDomain.NodeType.*;
 import static org.micromodules.control.util.Predicates2.and;
 
@@ -37,16 +35,15 @@ public class ModulesReport extends AbstractReport{
     private final ModulesAnalyzer analyzer;
     private final GraphRenderer renderer;
 
-    public static ModulesReport createFrom(final ModulesGraph graph, final ModulesAnalyzer analyzer, final GraphRenderer renderer){
-        return new ModulesReport(graph, analyzer, renderer);
+    public static ModulesReport createFrom(final ModulesGraph graph, final GraphRenderer renderer){
+        return new ModulesReport(graph, renderer);
     }
 
-    private ModulesReport(final ModulesGraph graph, final ModulesAnalyzer analyzer, final GraphRenderer renderer) {
+    private ModulesReport(final ModulesGraph graph, final GraphRenderer renderer) {
         checkNotNull(graph, "graph required");
-        checkNotNull(analyzer, "analyzer required");
         checkNotNull(renderer, "renderer required");
         this.graph = graph;
-        this.analyzer = analyzer;
+        this.analyzer = ModulesAnalyzer.createFrom(graph);
         this.renderer = renderer;
     }
 
@@ -78,14 +75,12 @@ public class ModulesReport extends AbstractReport{
                                     }
                                     html.br();
                                     listGraph(html,
-                                            graph.query().from(node).forward().by(SubModule).to(ModuleNode).single().graph(),
+                                            analyzer.getSubModules(node).graph(),
                                             and(not(node), ModuleNode),
                                             "Sub Modules"
                                     );
                                     listGraph(html,
-                                            graph.query().from(node).forward().by(DependsOn).to(ModuleNode).single()
-                                                    .useStart().then().backward().by(DependsOn).to(ModuleNode).single()
-                                                    .unmaskedEdgesGraph(),
+                                            analyzer.getRelatedModules(node).unmaskedEdgesGraph(),
                                             and(not(node), ModuleNode),
                                             "Related Modules"
                                     );
@@ -97,72 +92,49 @@ public class ModulesReport extends AbstractReport{
                                 })
                                 .addColumn("Contract", (html, node) -> {
                                     listGraph(html,
-                                            graph.query().from(node).forward().by(Contract).to(CodeNode).single().unmaskedEdgesGraph(),
+                                            analyzer.getContract(node).unmaskedEdgesGraph(),
                                             CodeNode);
 
                                 })
                                 .addColumn("Implementation", (html, node) -> {
                                     listGraph(html,
-                                            graph.query().from(node).forward().by(Implementation).to(CodeNode).single().unmaskedEdgesGraph(),
+                                            analyzer.getImplementation(node).unmaskedEdgesGraph(),
                                             CodeNode);
                                 })
                                 .addColumn("DependsOn", (html, node) -> {
                                     listGraph(html,
-                                            graph.query().from(node).forward().by(DependsOn).to(ModuleNode).single().graph(),
+                                            analyzer.getDirectDependencies(node).graph(),
                                             not(node),
                                             "Direct Dependencies");
-                                    final GraphQuery.GraphPathBacktrace sumModulesQuery = graph.query().from(node).forward().by(SubModule).to(ModuleNode).recursive();
-                                    final ImmutableSet<Node> subModulesSet = sumModulesQuery.set();
-                                    listGraph(html, sumModulesQuery.then().forward().by(DependsOn).to(ModuleNode).single().unmaskedEdgesGraph(),
-                                            and(not(in(subModulesSet)), ModuleNode),
+
+                                    listGraph(html, analyzer.getHierarchyDependencies(node).unmaskedEdgesGraph(),
+                                            and(not(in(analyzer.getSubModules(node).set())), ModuleNode),
                                             "Hierarchy Dependencies"
                                     );
                                 })
                                 .addColumn("UsedBy", (html, node) -> {
                                     listGraph(html,
-                                            graph.query().from(node).backward().by(DependsOn).to(ModuleNode).single().graph(),
+                                            analyzer.getModuleUsedBy(node).graph(),
                                             not(node),
                                             "Direct Usages");
                                 })
                                 .addColumn("JarDependencies", (html, node) -> {
                                     listGraph(html,
-                                            graph.query()
-                                                    .from(node).forward().by(Implementation).by(Contract).to(CodeNode).single()
-                                                    .useFinish().then().forward().by(Uses).to(JarNode).single().graph(),
+                                            analyzer.getModuleJarDependencies(node).graph(),
                                             JarNode);
 
                                 })
                                 .addColumn("Problems", (html, node) -> {
                                     listGraph(html,
-                                            graph.query()
-                                                    .from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
-                                                    .useFinish().then().forward().by(Uses).to(CodeNode).single()
-                                                    .useFinish().then().backward().by(Contract).by(Implementation).to(
-                                                    and(
-                                                            not(in(
-                                                                    graph.query().from(node).backward().by(SubModule).to(ModuleNode).recursive()
-                                                                            .then().forward().by(AllowedDependency).to(ModuleNode).single()
-                                                                            .useFinish().then().forward().by(SubModule).to(ModuleNode).single()
-                                                                            .useFinish().set()
-                                                            )),
-                                                            not(node)
-                                                    )
-                                            ).single().backtrace().graph(),
+                                            analyzer.getModuleDependencyRuleViolation(node).graph(),
                                             and(not(node), ModuleNode),
                                             "Dependency rule violation");
                                     listGraph(html,
-                                            graph.query()
-                                                    .from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
-                                                    .useFinish().then().forward().by(Uses).to(CodeNode).single()
-                                                    .useFinish().then().backward().by(Implementation).to(and(not(node), ModuleNode)).single()
-                                                    .backtrace().graph(),
+                                            analyzer.getModuleContractRuleViolation(node).graph(),
                                             and(not(node), ModuleNode),
                                             "Contract rule violation");
                                     listGraph(html,
-                                            graph.query()
-                                                    .from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
-                                                    .useFinish().then().backward().by(Contract).by(Implementation).to(and(not(node), ModuleNode)).single()
-                                                    .backtrace().graph(),
+                                            analyzer.getModuleCollisionRuleViolation(node).graph(),
                                             and(not(node), ModuleNode),
                                             "Collision rule violation");
                                 })

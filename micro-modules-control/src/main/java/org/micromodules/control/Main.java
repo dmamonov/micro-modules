@@ -1,6 +1,5 @@
 package org.micromodules.control;
 
-import org.micromodules.control.analyze.ModulesAnalyzer;
 import org.micromodules.control.graph.GraphRenderer;
 import org.micromodules.control.graph.ModulesGraph;
 import org.micromodules.control.report.ModulesReport;
@@ -20,11 +19,10 @@ public class Main {
         final ClasspathRelations classpathRelations = ClasspathRelations.createFrom(Thread.currentThread().getContextClassLoader(), args);
         final ModulesSpecification modulesSpecification = ModulesSpecification.createFrom(classpathRelations);
         final ModulesGraph modulesGraph = ModulesGraph.createFrom(classpathRelations, modulesSpecification);
-        final ModulesAnalyzer modulesAnalyzer = ModulesAnalyzer.createFrom(modulesGraph);
         final GraphRenderer graphRenderer = Boolean.parseBoolean(System.getProperty("micro.render_graph_to_png", "false"))
                 ? GraphRenderer.createDonAndPngRenderer()
                 : GraphRenderer.createDonOnlyRenderer();
-        final ModulesReport modulesReport = ModulesReport.createFrom(modulesGraph, modulesAnalyzer, graphRenderer);
+        final ModulesReport modulesReport = ModulesReport.createFrom(modulesGraph, graphRenderer);
 
         final File reportIndexFile;
         try {
