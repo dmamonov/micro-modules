@@ -2,9 +2,12 @@ package org.micromodules.control.graph;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DirectedMultigraph;
+import org.micromodules.control.analyze.ModulesAnalyzer;
 import org.micromodules.control.graph.GraphDomain.EdgeType;
 import org.micromodules.control.graph.GraphDomain.Node;
 import org.micromodules.control.graph.GraphDomain.NodeEdge;
@@ -26,11 +29,13 @@ import static org.micromodules.control.util.Predicates2.and;
  */
 @org.micromodules.setup.Contract(__modules__.ModulesGraphModule.class)
 public class ModulesGraph {
-    private final DirectedGraph<Node, NodeEdge> graph = new DefaultDirectedGraph<>(NodeEdge.class);
+    private final DirectedGraph<Node, NodeEdge> graph = new DirectedMultigraph<>(NodeEdge.class);
     private final ImmutableMap<Node, ModuleSpec> nodeToModuleSpecMap;
 
     public static ModulesGraph createFrom(final ClasspathRelations classpathRelations, final ModulesSpecification modulesSpecification) {
-        return new ModulesGraph(classpathRelations, modulesSpecification);
+        final ModulesGraph modulesGraph = new ModulesGraph(classpathRelations, modulesSpecification);
+        modulesGraph.simplify();
+        return modulesGraph;
     }
 
     private ModulesGraph(final ClasspathRelations classpathRelations, final ModulesSpecification modulesSpecification) {
@@ -40,16 +45,16 @@ public class ModulesGraph {
         classpathRelations.getClassesSet().forEach(clazz -> {
             final Node packageNode = PackageNode.named(clazz.getPackage().getName());
             final Node codeNode = NodeType.CodeNode.named(clazz.getName());
-            addVertex(packageNode);
-            addVertex(codeNode);
-            createEdge(packageNode, Contains, codeNode);
+            addNode(packageNode);
+            addNode(codeNode);
+            createEdge(packageNode, ContainsSubClass, codeNode);
         });
         ImmutableList.copyOf(System.getProperty("java.class.path", "").split("[:;]")).forEach(jarPath -> {
             final String[] pathItems = jarPath.split("[/\\\\]");
             if (pathItems.length > 0) {
                 final String jarName = pathItems[pathItems.length - 1];
                 if (jarName.endsWith(".jar")) {
-                    this.addVertex(JarNode.named(jarName));
+                    this.addNode(JarNode.named(jarName));
                 }
             }
         });
@@ -57,27 +62,27 @@ public class ModulesGraph {
             final Node clazzNode = CodeNode.named(useClazz.getName());
             classpathRelations.getClassToDependencyClassMap().get(useClazz.getName()).forEach(dependencyClazzName -> {
                 final Node dependencyClazzNode = CodeNode.named(dependencyClazzName);
-                if (containsVertex(dependencyClazzNode)) {
-                    createEdge(clazzNode, Uses, dependencyClazzNode);
+                if (containsNode(dependencyClazzNode)) {
+                    createEdge(clazzNode, UsesClass, dependencyClazzNode);
                 } else {
                     final Node jarNode = JarNode.named(classpathRelations.getJarName(dependencyClazzNode.getName()));
-                    addVertex(jarNode);
-                    createEdge(clazzNode, Uses, jarNode);
+                    addNode(jarNode);
+                    createEdge(clazzNode, UsesClass, jarNode);
                 }
             });
             classpathRelations.getClassContainsClasses(useClazz.getName())
-                    .forEach(nestedClazzName -> createEdge(clazzNode, Contains, CodeNode.named(nestedClazzName)));
+                    .forEach(nestedClazzName -> createEdge(clazzNode, ContainsSubClass, CodeNode.named(nestedClazzName)));
         });
         modulesSpecification.getModuleSpecSet().forEach(spec -> {
             final Node moduleNode = NodeType.ModuleNode.named(spec.getId());
-            addVertex(moduleNode);
-            spec.getImplementationClasses().forEach(impl -> createEdge(moduleNode, Implementation, CodeNode.named(impl.getName())));
-            spec.getContractClasses().forEach(contract -> createEdge(moduleNode, Contract, CodeNode.named(contract.getName())));
+            addNode(moduleNode);
+            spec.getImplementationClasses().forEach(impl -> createEdge(moduleNode, ImplementationClass, CodeNode.named(impl.getName())));
+            spec.getContractClasses().forEach(contract -> createEdge(moduleNode, ContractClass, CodeNode.named(contract.getName())));
             { //add relation to module group:
                 final Class<?> superClazz = spec.getModule().getSuperclass();
                 if (Module.class.isAssignableFrom(superClazz)) {
                     final Node superModuleNode = ModuleNode.named(superClazz.getName());
-                    addVertex(superModuleNode);
+                    addNode(superModuleNode);
                     createEdge(superModuleNode, SubModule, moduleNode);
                 }
             }
@@ -88,7 +93,7 @@ public class ModulesGraph {
             final Node moduleNode = ModuleNode.named(spec.getId());
             spec.getAllowedDependencies().forEach(allowedDependencyClazz -> {
                 final Node allowedDependencyNode = ModuleNode.named(allowedDependencyClazz.getName());
-                createEdge(moduleNode, AllowedDependency, allowedDependencyNode);
+                createEdge(moduleNode, Allowed, allowedDependencyNode);
             });
 
         });
@@ -96,41 +101,78 @@ public class ModulesGraph {
 
         modulesSpecification.getModuleSpecSet().forEach(spec -> {
             final Node moduleNode = ModuleNode.named(spec.getId());
-            query().from(moduleNode).forward().by(Contract).by(Implementation).to(CodeNode).single()
-                    .useFinish().then().forward().by(Uses).to(CodeNode).single()
-                    .useFinish().then().backward().by(Contract).by(Implementation).to(and(ModuleNode, not(moduleNode))).single()
-                    .useFinish().set().forEach(dependsOnModuleNode -> createEdge(moduleNode, DependsOn, dependsOnModuleNode)
+            query().from(moduleNode).forward().by(ContractClass).by(ImplementationClass).to(CodeNode).single()
+                    .useFinish().then().forward().by(UsesClass).to(CodeNode).single()
+                    .useFinish().then().backward().by(ContractClass).by(ImplementationClass).to(and(ModuleNode, not(moduleNode))).single()
+                    .useFinish().set().forEach(dependsOnModuleNode -> createEdge(moduleNode, Dependency, dependsOnModuleNode)
             );
         });
 
         this.nodeToModuleSpecMap = Maps.uniqueIndex(modulesSpecification.getModuleSpecSet(), spec -> ModuleNode.named(spec.getId()));
 
         //cleanup useless nodes:
-        removeVertex(JarNode.named("rt.jar"));
-        removeVertex(JarNode.named("default"));
+        removeNode(JarNode.named("rt.jar"));
+        removeNode(JarNode.named("default"));
+    }
+
+    private void simplify() {
+        final ModulesAnalyzer analyzer = ModulesAnalyzer.createFrom(this);
+        query().from(ModuleNode).getStartSet().forEach(module -> {
+            final boolean isSuperModule = analyzer.isSuperModule(module);
+            System.out.println("Simplify " + (isSuperModule ? "Super" : "") + " module: " + module);
+            final ImmutableSet<Node> moduleClassesSet = analyzer.getModuleAllClasses(module).set(CodeNode);
+            if (isSuperModule) {
+                if (moduleClassesSet.size() > 0) {
+                    System.out.println("  Super module must not contain classes: " + moduleClassesSet);
+                    moduleClassesSet.forEach(code -> createEdge(module, RuleSuperModuleMustNotContainClasses, code));
+                }
+            } else {
+                if (moduleClassesSet.isEmpty()) {
+                    System.out.println("  Regular Module should contain classes");
+                    createEdgeForce(module, HasProblem, ProblemNode.named("Not super module should contain at least one class"));
+                }
+            }
+            {
+                final ImmutableSet<Node> superModulesSet = analyzer.getSuperModules(module).set(ModuleNode);
+                System.out.println("  Super modules: " + superModulesSet);
+                final ImmutableSet<Node> allowedDependencyModulesSet = analyzer.getModuleAllowedDependencies(module).set(ModuleNode);
+                System.out.println("  Allowed dependencies: " + allowedDependencyModulesSet);
+                final ImmutableSet<Node> actualDependencySet = analyzer.getModuleDirectDependencies(module).useFinish().set(ModuleNode);
+                System.out.println("  Actual dependencies: " + actualDependencySet);
+                final Sets.SetView<Node> notAllowedDependenciesSet = Sets.difference(actualDependencySet, allowedDependencyModulesSet);
+                if (notAllowedDependenciesSet.size() > 0) {
+                    System.out.println("  Contains not allowed dependencies: " + notAllowedDependenciesSet);
+                    notAllowedDependenciesSet.forEach(dependencyModule -> createEdge(module, NotAllowed, dependencyModule));
+                }
+            }
+        });
     }
 
     public GraphQuery.GraphPathStart query() {
         return GraphQuery.start(graph);
     }
 
-    public ModulesGraph addVertex(final Node node) {
+    public ModulesGraph addNode(final Node node) {
         this.graph.addVertex(node);
         return this;
     }
 
-    private ModulesGraph removeVertex(final Node node) {
+    private ModulesGraph removeNode(final Node node) {
         this.graph.removeVertex(node);
         return this;
     }
 
-    private boolean containsVertex(final Node node) {
+    private boolean containsNode(final Node node) {
         return graph.containsVertex(node);
     }
 
     public ModulesGraph createEdge(final Node from, final EdgeType by, final Node to) {
         by.createEdge(this.graph, from, to);
         return this;
+    }
+
+    public ModulesGraph createEdgeForce(final Node from, final EdgeType by, final Node to) {
+        return addNode(from).addNode(to).createEdge(from, by, to);
     }
 
     public ModuleSpec getModuleSpecByNode(final Node node) {

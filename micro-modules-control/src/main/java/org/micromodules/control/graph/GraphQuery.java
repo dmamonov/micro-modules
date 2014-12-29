@@ -86,6 +86,11 @@ public class GraphQuery  {
 
         ImmutableSet<Node> set();
 
+        default ImmutableSet<Node> set(final Predicate<Node> predicate) {
+            return ImmutableSet.copyOf(Sets.filter(set(), predicate));
+        }
+
+
         DirectedGraph<Node, NodeEdge> graph();
 
         DirectedGraph<Node, NodeEdge> unmaskedEdgesGraph();
@@ -171,7 +176,7 @@ public class GraphQuery  {
                 }
 
                 public ImmutableSet<Node> getStartSet() {
-                    return startSet;
+                    return copyOf(new TreeSet<>(startSet));
                 }
             }
 

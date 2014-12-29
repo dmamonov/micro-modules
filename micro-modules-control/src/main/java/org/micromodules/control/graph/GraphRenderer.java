@@ -1,5 +1,6 @@
 package org.micromodules.control.graph;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -41,7 +42,7 @@ public class GraphRenderer {
         final DOTExporter<GraphDomain.Node, GraphDomain.NodeEdge> exporter = new DOTExporter<>(
                 GraphDomain.Node::toString,
                 node -> null,
-                edge -> edge.getType().name(),
+                edge -> Joiner.on(",").join(edge.getTypes()),
                 node -> ImmutableMap.<String, String>builder().build(),
                 edge -> ImmutableMap.<String, String>builder().build()
         );

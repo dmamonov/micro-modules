@@ -1,5 +1,6 @@
 package org.micromodules.control;
 
+import org.micromodules.control.util.__modules__.UtilModule;
 import org.micromodules.setup.Module;
 import org.micromodules.setup.ModuleSetup;
 import org.micromodules.setup.__modules__.SetupModule;
@@ -10,19 +11,19 @@ import org.micromodules.setup.__modules__.SetupModule;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class __modules__ {
-    public static class CliModule extends ControlSuperModule {
-        @Override
-        public void setup(final ModuleSetup setup) {
-            setup.comment("console entry point")
-                    .dependencies().allow(SetupModule.class);
-        }
-    }
-
     public static class ControlSuperModule implements Module {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("super module")
-                    .dependencies().allow(SetupModule.class);
+                    .dependencies().allow(SetupModule.class)
+                    .dependencies().allow(UtilModule.class);
+        }
+    }
+
+    public static class CliModule extends ControlSuperModule {
+        @Override
+        public void setup(final ModuleSetup setup) {
+            setup.comment("console entry point");
         }
     }
 }

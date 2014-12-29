@@ -4,12 +4,16 @@ import com.googlecode.jatl.Html;
 import org.jgraph.graph.AttributeMap;
 import org.jgraph.graph.Edge;
 import org.jgrapht.DirectedGraph;
+import org.micromodules.control.util.Predicates2.BooleanMixin;
 import org.micromodules.setup.Contract;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * @author dmitry.mamonov
@@ -17,11 +21,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Contract(__modules__.ModulesGraphModule.class)
 public final class GraphDomain {
-    public enum NodeType implements Predicate<Node>, com.google.common.base.Predicate<Node> {
+    public enum NodeType implements Predicate<Node>, BooleanMixin<Node> {
         CodeNode,
         PackageNode,
         ModuleNode,
-        JarNode;
+        JarNode,
+        ProblemNode;
 
         public Node named(final String name) {
             return new Node(name, this);
@@ -38,15 +43,18 @@ public final class GraphDomain {
         }
     }
 
-    public enum EdgeType implements com.google.common.base.Predicate<NodeEdge> {
+    public enum EdgeType implements BooleanMixin<NodeEdge> {
         SubModule,
-        Contains,
-        Uses,
-        DependsOn,
-        AllowedDependency(true),
+        ContainsSubClass,
+        UsesClass,
+        Dependency,
+        NotAllowed,
+        Allowed(true),
         RequiredDependency,
-        Contract,
-        Implementation;
+        ContractClass,
+        ImplementationClass,
+        RuleSuperModuleMustNotContainClasses,
+        HasProblem;
 
         private final boolean allowLoopDependency;
 
@@ -60,30 +68,37 @@ public final class GraphDomain {
 
         public final void createEdge(final DirectedGraph<Node, NodeEdge> dg, final Node source, final Node target) {
             if (!source.equals(target) || allowLoopDependency) {
-                dg.addEdge(source, target, new NodeEdge(this, source, target));
+                checkState(dg.containsVertex(source), "No source node in graph: %s", source);
+                checkState(dg.containsVertex(target), "No target node in graph: %s", target);
+                final NodeEdge existingEdge = dg.getEdge(source, target);
+                if (existingEdge!=null){
+                    existingEdge.getTypes().add(this);
+                } else {
+                    dg.addEdge(source, target, new NodeEdge(this, source, target));
+                }
             }
         }
 
         @Override
         public boolean apply(final NodeEdge edge) {
-            return edge.getType() == this;
+            return edge.getTypes().contains(this);
         }
     }
 
     public static final class NodeEdge implements Edge {
-        private final EdgeType type;
+        private final Set<EdgeType> types = new TreeSet<>();
         private final Node source;
         private final Node target;
 
 
         private NodeEdge(final EdgeType type, final Node source, final Node target) {
-            this.type = type;
+            this.types.add(type);
             this.source = source;
             this.target = target;
         }
 
-        public EdgeType getType() {
-            return type;
+        public Set<EdgeType> getTypes() {
+            return types;
         }
 
         @Override
@@ -124,24 +139,21 @@ public final class GraphDomain {
         }
 
         @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
+        public boolean equals(final Object other) {
+            if (this == other) {
                 return true;
             }
-            if (!(o instanceof NodeEdge)) {
+            if (!(other instanceof NodeEdge)) {
                 return false;
             }
 
-            final NodeEdge nodeEdge = (NodeEdge) o;
+            final NodeEdge nodeEdge = (NodeEdge) other;
 
-            if (source != null ? !source.equals(nodeEdge.source) : nodeEdge.source != null) {
-                return false;
-            }
-            if (target != null ? !target.equals(nodeEdge.target) : nodeEdge.target != null) {
+            if (!source.equals(nodeEdge.source)) {
                 return false;
             }
             //noinspection RedundantIfStatement
-            if (type != nodeEdge.type) {
+            if (!target.equals(nodeEdge.target)) {
                 return false;
             }
 
@@ -150,19 +162,18 @@ public final class GraphDomain {
 
         @Override
         public int hashCode() {
-            int result = type != null ? type.hashCode() : 0;
-            result = 31 * result + (source != null ? source.hashCode() : 0);
-            result = 31 * result + (target != null ? target.hashCode() : 0);
+            int result = source.hashCode();
+            result = 31 * result + target.hashCode();
             return result;
         }
 
         @Override
         public String toString() {
-            return source+" --"+type+"-> "+target;
+            return source+" --"+types+"-> "+target;
         }
     }
 
-    public static class Node implements com.google.common.base.Predicate<Node>, Comparable<Node> {
+    public static class Node implements BooleanMixin<Node>, Comparable<Node> {
         private final String name;
         private final NodeType type;
 

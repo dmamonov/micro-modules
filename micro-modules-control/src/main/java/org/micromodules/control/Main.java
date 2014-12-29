@@ -21,6 +21,7 @@ public class Main {
         final ClasspathRelations classpathRelations = ClasspathRelations.createFrom(Thread.currentThread().getContextClassLoader(), args);
         final ModulesSpecification modulesSpecification = ModulesSpecification.createFrom(classpathRelations);
         final ModulesGraph modulesGraph = ModulesGraph.createFrom(classpathRelations, modulesSpecification);
+//        if (true)return;
         final GraphRenderer graphRenderer = Boolean.parseBoolean(System.getProperty("micro.render_graph_to_png", "false"))
                 ? GraphRenderer.createDonAndPngRenderer()
                 : GraphRenderer.createDonOnlyRenderer();

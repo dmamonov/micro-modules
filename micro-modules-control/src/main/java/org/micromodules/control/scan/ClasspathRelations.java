@@ -24,6 +24,7 @@ import java.util.Set;
  * @author dmitry.mamonov
  *         Created: 2014-12-29 3:48 PM
  */
+@Contract(__modules__.ScannerModule.class)
 public class ClasspathRelations {
     private final ImmutableSet<Class<? extends Module>> modulesSet;
     private final ImmutableSet<Class<?>> classesSet;
@@ -69,7 +70,7 @@ public class ClasspathRelations {
                     }
                     packageToClassMapMutable.get(classInfo.getPackageName()).add(clazz);
                     classesSetMutable.add(clazz);
-                    { //Contract annotation
+                    { //ContractClass annotation
                         final Contract contract = clazz.getAnnotation(Contract.class);
                         if (contract!=null) {
                             moduleToAnnotatedContractClassesMapMutable.get(contract.value()).add(clazz);

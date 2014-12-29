@@ -13,7 +13,11 @@ public class __modules__ {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("Reporting by modules")
-                .implementation().include().allInPackage();
+                    .implementation().include().allInPackage()
+                    .dependencies().allow(org.micromodules.control.spec.__modules__.SpecificationModule.class)
+                    .dependencies().allow(org.micromodules.control.graph.__modules__.ModulesGraphModule.class)
+                    .dependencies().allow(org.micromodules.control.analyze.__modules__.AnalyzeModule.class)
+            ;
         }
     }
 }

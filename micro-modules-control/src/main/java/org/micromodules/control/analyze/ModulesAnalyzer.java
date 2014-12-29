@@ -1,5 +1,6 @@
 package org.micromodules.control.analyze;
 
+import com.google.common.collect.ImmutableSet;
 import org.micromodules.control.graph.GraphDomain.Node;
 import org.micromodules.control.graph.GraphQuery.GraphPathFinish;
 import org.micromodules.control.graph.ModulesGraph;
@@ -28,71 +29,90 @@ public class ModulesAnalyzer {
         this.graph = graph;
     }
 
-    public GraphPathFinish getSubModules(final Node node) {
-        return graph.query().from(node).forward().by(SubModule).to(ModuleNode).recursive();
+    public GraphPathFinish getSuperModules(final Node module) {
+        return graph.query().from(module).backward().by(SubModule).to(ModuleNode).recursive();
     }
 
-    public GraphPathFinish getRelatedModules(final Node node) {
-        return graph.query().from(node).forward().by(DependsOn).to(ModuleNode).single()
-                .useStart().then().backward().by(DependsOn).to(ModuleNode).single();
+    public GraphPathFinish getSubModules(final Node module) {
+        return graph.query().from(module).forward().by(SubModule).to(ModuleNode).recursive();
     }
 
-    public GraphPathFinish getContract(final Node node) {
-        return graph.query().from(node).forward().by(Contract).to(CodeNode).single();
+    public GraphPathFinish getRelatedModules(final Node module) {
+        return graph.query().from(module).forward().by(Dependency).to(ModuleNode).single()
+                .useStart().then().backward().by(Dependency).to(ModuleNode).single();
     }
 
-    public GraphPathFinish getImplementation(final Node node) {
-        return graph.query().from(node).forward().by(Implementation).to(CodeNode).single();
+    public GraphPathFinish getModuleContractClasses(final Node module) {
+        return graph.query().from(module).forward().by(ContractClass).to(CodeNode).single();
     }
 
-    public GraphPathFinish getDirectDependencies(final Node node) {
-        return graph.query().from(node).forward().by(DependsOn).to(ModuleNode).single();
+    public GraphPathFinish getModuleImplementationClasses(final Node module) {
+        return graph.query().from(module).forward().by(ImplementationClass).to(CodeNode).single();
     }
 
-    public GraphPathFinish getHierarchyDependencies(final Node node) {
-        return getSubModules(node).then().forward().by(DependsOn).to(ModuleNode).single();
+    public GraphPathFinish getModuleAllClasses(final Node module) {
+        return graph.query().from(module).forward().by(ContractClass.or(ImplementationClass)).to(CodeNode).single();
     }
 
-    public GraphPathFinish getModuleUsedBy(final Node node) {
-        return graph.query().from(node).backward().by(DependsOn).to(ModuleNode).single();
+    public GraphPathFinish getModuleDirectDependencies(final Node module) {
+        return graph.query().from(module).forward().by(Dependency).to(ModuleNode).single();
     }
 
-    public GraphPathFinish getModuleJarDependencies(final Node node) {
+    public GraphPathFinish getModuleHierarchyDependencies(final Node module) {
+        return getSubModules(module).then().forward().by(Dependency).to(ModuleNode).single();
+    }
+
+    public GraphPathFinish getModuleUsedBy(final Node module) {
+        return graph.query().from(module).backward().by(Dependency).to(ModuleNode).single();
+    }
+
+    public GraphPathFinish getModuleJarDependencies(final Node module) {
         return graph.query()
-                .from(node).forward().by(Implementation).by(Contract).to(CodeNode).single()
-                .useFinish().then().forward().by(Uses).to(JarNode).single();
+                .from(module).forward().by(ImplementationClass).by(ContractClass).to(CodeNode).single()
+                .useFinish().then().forward().by(UsesClass).to(JarNode).single();
     }
 
 
-    public GraphPathFinish getModuleDependencyRuleViolation(final Node node) {
+    public GraphPathFinish getModuleDependencyRuleViolation(final Node module) {
+        final GraphPathFinish superModules = getSuperModules(module);
+        final ImmutableSet<Node> superModulesSet = superModules.set(ModuleNode);
         return graph.query()
-                .from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
-                .useFinish().then().forward().by(Uses).to(CodeNode).single()
-                .useFinish().then().backward().by(Contract).by(Implementation).to(
+                .from(module).forward().by(ContractClass).by(ImplementationClass).to(CodeNode).single()
+                .useFinish().then().forward().by(UsesClass).to(CodeNode).single()
+                .useFinish().then().backward().by(ContractClass).by(ImplementationClass).to(
                         and(
                                 not(in(
-                                        graph.query().from(node).backward().by(SubModule).to(ModuleNode).recursive()
-                                                .then().forward().by(AllowedDependency).to(ModuleNode).single()
+                                        superModules
+                                                .then().forward().by(Allowed).to(ModuleNode).single()
                                                 .useFinish().then().forward().by(SubModule).to(ModuleNode).single()
-                                                .useFinish().set()
+                                                .set(and(ModuleNode, not(in(superModulesSet))))
                                 )),
-                                not(node)
+                                not(module)
                         )
                 ).single().backtrace();
     }
+    public GraphPathFinish getModuleAllowedDependencies(final Node module){
+        final ImmutableSet<Node> superModulesSet = getSuperModules(module).set(ModuleNode);
+        return graph.query().from(superModulesSet).forward().by(Allowed).to(ModuleNode).single().useFinish();
+    }
 
-    public GraphPathFinish getModuleContractRuleViolation(final Node node) {
+
+    public GraphPathFinish getModuleContractRuleViolation(final Node module) {
         return graph.query()
-                .from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
-                .useFinish().then().forward().by(Uses).to(CodeNode).single()
-                .useFinish().then().backward().by(Implementation).to(and(not(node), ModuleNode)).single()
+                .from(module).forward().by(ContractClass).by(ImplementationClass).to(CodeNode).single()
+                .useFinish().then().forward().by(UsesClass).to(CodeNode).single()
+                .useFinish().then().backward().by(ImplementationClass).to(and(not(module), ModuleNode)).single()
                 .backtrace();
     }
 
-    public GraphPathFinish getModuleCollisionRuleViolation(final Node node) {
+    public GraphPathFinish getModuleCollisionRuleViolation(final Node module) {
         return graph.query()
-                .from(node).forward().by(Contract).by(Implementation).to(CodeNode).single()
-                .useFinish().then().backward().by(Contract).by(Implementation).to(and(not(node), ModuleNode)).single()
+                .from(module).forward().by(ContractClass).by(ImplementationClass).to(CodeNode).single()
+                .useFinish().then().backward().by(ContractClass).by(ImplementationClass).to(and(not(module), ModuleNode)).single()
                 .backtrace();
+    }
+    
+    public boolean isSuperModule(final Node module){
+        return graph.query().from(module).forward().by(SubModule).to(ModuleNode).single().useFinish().set().size()>0;
     }
 }

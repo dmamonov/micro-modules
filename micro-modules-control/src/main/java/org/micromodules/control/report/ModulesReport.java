@@ -63,6 +63,9 @@ public class ModulesReport extends AbstractReport{
                 @SuppressWarnings("CodeBlock2Expr")
                 @Override
                 public void run() {
+                    final File allModulesGraph = renderer.export(graph.query().from(ModuleNode).forward().to(ModuleNode).single().unmaskedEdgesGraph(), dir, "all-modules");
+                    index.img().attr("src",allModulesGraph.getName()).end();
+
                     //noinspection ConstantConditions,ConstantIfStatement
                     if (true) {
                         new TableReport<Node>("All Modules Report")
@@ -94,22 +97,22 @@ public class ModulesReport extends AbstractReport{
                                 })
                                 .addColumn("Contract", (html, node) -> {
                                     listGraph(html,
-                                            analyzer.getContract(node).unmaskedEdgesGraph(),
+                                            analyzer.getModuleContractClasses(node).unmaskedEdgesGraph(),
                                             CodeNode);
 
                                 })
                                 .addColumn("Implementation", (html, node) -> {
                                     listGraph(html,
-                                            analyzer.getImplementation(node).unmaskedEdgesGraph(),
+                                            analyzer.getModuleImplementationClasses(node).unmaskedEdgesGraph(),
                                             CodeNode);
                                 })
                                 .addColumn("DependsOn", (html, node) -> {
                                     listGraph(html,
-                                            analyzer.getDirectDependencies(node).graph(),
+                                            analyzer.getModuleDirectDependencies(node).graph(),
                                             not(node),
                                             "Direct Dependencies");
 
-                                    listGraph(html, analyzer.getHierarchyDependencies(node).unmaskedEdgesGraph(),
+                                    listGraph(html, analyzer.getModuleHierarchyDependencies(node).unmaskedEdgesGraph(),
                                             and(not(in(analyzer.getSubModules(node).set())), ModuleNode),
                                             "Hierarchy Dependencies"
                                     );
