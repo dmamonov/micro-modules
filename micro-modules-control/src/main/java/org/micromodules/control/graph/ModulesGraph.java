@@ -24,6 +24,7 @@ import static org.micromodules.control.util.Predicates2.and;
  * @author dmitry.mamonov
  *         Created: 2014-12-29 3:43 PM
  */
+@org.micromodules.setup.Contract(__modules__.ModulesGraphModule.class)
 public class ModulesGraph {
     private final DirectedGraph<Node, NodeEdge> graph = new DefaultDirectedGraph<>(NodeEdge.class);
     private final ImmutableMap<Node, ModuleSpec> nodeToModuleSpecMap;

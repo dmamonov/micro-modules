@@ -1,4 +1,4 @@
-package org.micromodules.control;
+package org.micromodules.control.scan;
 
 import org.micromodules.setup.Module;
 import org.micromodules.setup.ModuleSetup;
@@ -9,10 +9,10 @@ import org.micromodules.setup.ModuleSetup;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class __modules__ {
-    public static class CliModule implements Module {
+    public static class ScannerModule implements Module {
         @Override
         public void setup(final ModuleSetup setup) {
-            setup.comment("console entry point");
+            setup.comment("Scan classpath byte code structure");
         }
     }
 }

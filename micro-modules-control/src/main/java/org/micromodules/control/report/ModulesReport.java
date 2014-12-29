@@ -10,6 +10,7 @@ import org.micromodules.control.graph.GraphDomain.NodeEdge;
 import org.micromodules.control.graph.GraphRenderer;
 import org.micromodules.control.graph.ModulesGraph;
 import org.micromodules.control.spec.ModuleSpec;
+import org.micromodules.setup.Contract;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -30,6 +31,7 @@ import static org.micromodules.control.util.Predicates2.and;
  * @author dmitry.mamonov
  *         Created: 2014-12-29 4:01 PM
  */
+@Contract(__modules__.ReportModule.class)
 public class ModulesReport extends AbstractReport{
     private final ModulesGraph graph;
     private final ModulesAnalyzer analyzer;

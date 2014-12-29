@@ -2,6 +2,7 @@ package org.micromodules.control.spec;
 
 import com.google.common.collect.ImmutableSet;
 import org.micromodules.control.scan.ClasspathRelations;
+import org.micromodules.setup.Contract;
 import org.micromodules.setup.Module;
 
 import java.lang.reflect.Constructor;
@@ -14,6 +15,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author dmitry.mamonov
  *         Created: 2014-12-29 4:06 PM
  */
+@Contract(__modules__.SpecificationModule.class)
 public class ModulesSpecification extends AbstractSpecification {
     public static ModulesSpecification createFrom(final ClasspathRelations classpathRelations) {
         return new ModulesSpecification(classpathRelations);

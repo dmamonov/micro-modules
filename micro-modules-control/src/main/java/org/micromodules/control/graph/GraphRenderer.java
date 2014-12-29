@@ -7,6 +7,7 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.ext.DOTExporter;
 import org.micromodules.control.scan.ClasspathRelations;
 import org.micromodules.control.spec.ModulesSpecification;
+import org.micromodules.setup.Contract;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -18,6 +19,7 @@ import java.nio.file.Files;
  * @author dmitry.mamonov
  *         Created: 2014-12-29 4:42 PM
  */
+@Contract(__modules__.ModulesGraphModule.class)
 public class GraphRenderer {
     private static final DefaultExecutor executor = new DefaultExecutor();
     private final boolean renderGraphToPng;

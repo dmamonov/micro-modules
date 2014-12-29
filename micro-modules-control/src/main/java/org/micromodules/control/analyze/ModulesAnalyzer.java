@@ -8,15 +8,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static org.micromodules.control.graph.GraphDomain.EdgeType.*;
-import static org.micromodules.control.graph.GraphDomain.NodeType.CodeNode;
-import static org.micromodules.control.graph.GraphDomain.NodeType.JarNode;
-import static org.micromodules.control.graph.GraphDomain.NodeType.ModuleNode;
+import static org.micromodules.control.graph.GraphDomain.NodeType.*;
 import static org.micromodules.control.util.Predicates2.and;
 
 /**
  * @author dmitry.mamonov
  *         Created: 2014-12-29 5:52 PM
  */
+@org.micromodules.setup.Contract(__modules__.AnalyzeModule.class)
 public class ModulesAnalyzer {
     private final ModulesGraph graph;
 

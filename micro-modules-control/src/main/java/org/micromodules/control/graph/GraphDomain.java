@@ -4,6 +4,7 @@ import com.googlecode.jatl.Html;
 import org.jgraph.graph.AttributeMap;
 import org.jgraph.graph.Edge;
 import org.jgrapht.DirectedGraph;
+import org.micromodules.setup.Contract;
 
 import java.util.Map;
 import java.util.function.Predicate;
@@ -14,6 +15,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author dmitry.mamonov
  *         Created: 2014-12-29 3:54 PM
  */
+@Contract(__modules__.ModulesGraphModule.class)
 public final class GraphDomain {
     public enum NodeType implements Predicate<Node>, com.google.common.base.Predicate<Node> {
         CodeNode,

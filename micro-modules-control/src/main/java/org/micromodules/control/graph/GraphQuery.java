@@ -7,6 +7,7 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DirectedMaskSubgraph;
 import org.jgrapht.graph.MaskFunctor;
 import org.micromodules.control.graph.GraphDomain.*;
+import org.micromodules.setup.Contract;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,6 +28,7 @@ import static org.micromodules.control.util.Predicates2.or;
  * @author dmitry.mamonov
  *         Created: 2014-12-29 3:54 PM
  */
+@Contract(__modules__.ModulesGraphModule.class)
 public class GraphQuery  {
     public interface GraphPathStart {
         GraphPathDirection from(Node node);

@@ -12,9 +12,7 @@ public class __modules__ {
     public static class AnalyzeModule implements Module {
         @Override
         public void setup(final ModuleSetup setup) {
-            setup.comment("Analysis and reporting")
-                    .contract().include().matchByName("ModulesAnalyzer")
-                    .implementation().include().allInPackage();
+            setup.comment("Analysis and reporting");
         }
     }
 }

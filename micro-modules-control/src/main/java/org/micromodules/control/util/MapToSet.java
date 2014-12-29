@@ -2,6 +2,7 @@ package org.micromodules.control.util;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.micromodules.setup.Contract;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -11,6 +12,7 @@ import java.util.Set;
  * @author dmitry.mamonov
  *         Created: 2014-12-29 3:58 PM
  */
+@Contract(__modules__.UtilModule.class)
 public class MapToSet<K, V> extends LinkedHashMap<K, Set<V>> {
     @Override
     public Set<V> get(final Object key) {

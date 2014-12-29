@@ -1,4 +1,4 @@
-package org.micromodules.control;
+package org.micromodules.control.report;
 
 import org.micromodules.setup.Module;
 import org.micromodules.setup.ModuleSetup;
@@ -9,10 +9,11 @@ import org.micromodules.setup.ModuleSetup;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class __modules__ {
-    public static class CliModule implements Module {
+    public static class ReportModule implements Module {
         @Override
         public void setup(final ModuleSetup setup) {
-            setup.comment("console entry point");
+            setup.comment("Reporting by modules")
+                .implementation().include().allInPackage();
         }
     }
 }

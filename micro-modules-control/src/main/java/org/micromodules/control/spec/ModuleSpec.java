@@ -2,12 +2,14 @@ package org.micromodules.control.spec;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.micromodules.setup.Contract;
 import org.micromodules.setup.Module;
 
 /**
 * @author dmitry.mamonov
 *         Created: 2014-12-29 5:22 PM
 */
+@Contract(__modules__.SpecificationModule.class)
 public interface ModuleSpec {
     default String getId(){
         return getModule().getName();
