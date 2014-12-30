@@ -1,8 +1,9 @@
-package org.micromodules.test.common;
+package org.micromodules.test.project.ui;
 
 /**
  * @author dmitry.mamonov
  *         Created: 2014-12-26 9:58 PM
  */
-public interface Common1 {
+public interface Ui2 {
+
 }

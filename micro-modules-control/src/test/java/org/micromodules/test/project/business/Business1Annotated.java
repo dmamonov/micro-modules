@@ -1,4 +1,4 @@
-package org.micromodules.test.business;
+package org.micromodules.test.project.business;
 
 import org.micromodules.setup.Contract;
 

@@ -1,6 +1,6 @@
-package org.micromodules.test.common;
+package org.micromodules.test.project.common;
 
-import org.micromodules.test.ui.Ui1;
+import org.micromodules.test.project.ui.Ui1;
 
 /**
  * @author dmitry.mamonov

@@ -1,6 +1,6 @@
-package org.micromodules.test.ui;
+package org.micromodules.test.project.ui;
 
-import org.micromodules.test.business.Business1;
+import org.micromodules.test.project.business.Business1;
 
 /**
  * @author dmitry.mamonov

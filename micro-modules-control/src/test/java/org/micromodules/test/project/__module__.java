@@ -1,4 +1,4 @@
-package org.micromodules.test;
+package org.micromodules.test.project;
 
 import org.micromodules.setup.Module;
 import org.micromodules.setup.ModuleSetup;

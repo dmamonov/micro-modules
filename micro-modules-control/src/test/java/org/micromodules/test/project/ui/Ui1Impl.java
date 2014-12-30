@@ -1,4 +1,4 @@
-package org.micromodules.test.ui;
+package org.micromodules.test.project.ui;
 
 /**
  * @author dmitry.mamonov

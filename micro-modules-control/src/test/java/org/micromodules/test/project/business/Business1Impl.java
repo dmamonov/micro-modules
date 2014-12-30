@@ -1,4 +1,4 @@
-package org.micromodules.test.business;
+package org.micromodules.test.project.business;
 
 import com.google.common.collect.ImmutableList;
 

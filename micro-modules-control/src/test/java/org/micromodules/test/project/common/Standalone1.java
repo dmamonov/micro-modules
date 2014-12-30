@@ -1,4 +1,4 @@
-package org.micromodules.test.common;
+package org.micromodules.test.project.common;
 
 /**
  * @author dmitry.mamonov

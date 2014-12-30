@@ -67,19 +67,22 @@ public class ClasspathRelations {
                     if (Module.class.isAssignableFrom(clazz) && !clazz.isInterface() && !Module.Partial.class.isAssignableFrom(clazz)) {
                         //noinspection unchecked
                         modulesSetMutable.add((Class<? extends Module>) clazz);
-                    }
-                    packageToClassMapMutable.get(classInfo.getPackageName()).add(clazz);
-                    classesSetMutable.add(clazz);
-                    { //ContractClass annotation
-                        final Contract contract = clazz.getAnnotation(Contract.class);
-                        if (contract!=null) {
-                            moduleToAnnotatedContractClassesMapMutable.get(contract.value()).add(clazz);
+                    } else if (clazz.getSimpleName().equals("__module__")||clazz.getSimpleName().equals("__modules__")){
+                        //skip.
+                    } else {
+                        packageToClassMapMutable.get(classInfo.getPackageName()).add(clazz);
+                        classesSetMutable.add(clazz);
+                        { //ContractClass annotation
+                            final Contract contract = clazz.getAnnotation(Contract.class);
+                            if (contract!=null) {
+                                moduleToAnnotatedContractClassesMapMutable.get(contract.value()).add(clazz);
+                            }
                         }
-                    }
-                    { //Implementation annotation
-                        final Implementation implementation = clazz.getAnnotation(Implementation.class);
-                        if (implementation!=null){
-                            moduleToAnnotatedImplementationClassesMapMutable.get(implementation.value()).add(clazz);
+                        { //Implementation annotation
+                            final Implementation implementation = clazz.getAnnotation(Implementation.class);
+                            if (implementation!=null){
+                                moduleToAnnotatedImplementationClassesMapMutable.get(implementation.value()).add(clazz);
+                            }
                         }
                     }
                     break;

@@ -1,7 +1,7 @@
-package org.micromodules.test.ui;
+package org.micromodules.test.project.ui;
 
 import org.micromodules.setup.ModuleSetup;
-import org.micromodules.test.__module__.UiLayer;
+import org.micromodules.test.project.__module__.UiLayer;
 
 /**
  * @author dmitry.mamonov

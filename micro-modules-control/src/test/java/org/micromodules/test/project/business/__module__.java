@@ -1,7 +1,7 @@
-package org.micromodules.test.business;
+package org.micromodules.test.project.business;
 
 import org.micromodules.setup.ModuleSetup;
-import org.micromodules.test.__module__.BusinessLayer;
+import org.micromodules.test.project.__module__.BusinessLayer;
 
 /**
  * @author dmitry.mamonov

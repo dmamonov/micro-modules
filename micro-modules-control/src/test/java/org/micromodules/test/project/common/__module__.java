@@ -1,8 +1,8 @@
-package org.micromodules.test.common;
+package org.micromodules.test.project.common;
 
 import org.micromodules.setup.ModuleSetup;
-import org.micromodules.test.__module__.CommonLayer;
-import org.micromodules.test.__module__.StandaloneLayer;
+import org.micromodules.test.project.__module__.CommonLayer;
+import org.micromodules.test.project.__module__.StandaloneLayer;
 
 /**
  * @author dmitry.mamonov
