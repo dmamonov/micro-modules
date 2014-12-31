@@ -1,5 +1,7 @@
 #Micro Modules Framework
 
+[![Build Status](https://travis-ci.org/dmamonov/micro-modules.svg?branch=master)](https://travis-ci.org/dmamonov/micro-modules)
+
 Control code dependencies at class level precision not affecting current project structure.
 
 ##Inspiration
