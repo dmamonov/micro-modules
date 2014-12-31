@@ -6,6 +6,7 @@ import org.jgraph.graph.Edge;
 import org.jgrapht.DirectedGraph;
 import org.micromodules.control.util.Predicates2.BooleanMixin;
 import org.micromodules.setup.Contract;
+import org.micromodules.setup.Module;
 
 import java.util.Map;
 import java.util.Set;
@@ -250,6 +251,14 @@ public final class GraphDomain {
         @Override
         public String toString() {
             return '"' + name + ":" + type.name().replace("Node", "") + '"';
+        }
+
+        public static Node classNode(final Class<?> clazz) {
+            if (!clazz.isInterface() && Module.class.isAssignableFrom(clazz)) {
+                return NodeType.ModuleNode.named(clazz.getName());
+            } else {
+                return NodeType.CodeNode.named(clazz.getName());
+            }
         }
     }
 }

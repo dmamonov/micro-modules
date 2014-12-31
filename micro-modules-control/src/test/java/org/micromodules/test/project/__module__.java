@@ -22,7 +22,7 @@ public interface  __module__ {
         }
     }
 
-    class CommonLayer implements Module {
+    class CommonLayer extends EntireApplication {
         @Override
         public void setup(final ModuleSetup setup) {
             setup.comment("Common logic layer")

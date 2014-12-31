@@ -1,4 +1,4 @@
-package org.micromodules.test;
+package org.micromodules.test.suite;
 
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 public class AbstractClasspathRelationsTest {
     public static final ImmutableSet<Class<?>> expectedModuleWrappers = ImmutableSet.<Class<?>>builder()
             .add(__module__.class)
+            .add(org.micromodules.test.project.standalone.__module__.class)
             .add(org.micromodules.test.project.common.__module__.class)
             .add(org.micromodules.test.project.business.__module__.class)
             .add(org.micromodules.test.project.ui.__module__.class)
@@ -30,7 +31,8 @@ public class AbstractClasspathRelationsTest {
             .add(__module__.CommonLayer.class)
             .add(__module__.BusinessLayer.class)
             .add(__module__.UiLayer.class)
-            .add(org.micromodules.test.project.common.__module__.Standalone1Module.class)
+            .add(org.micromodules.test.project.standalone.__module__.Standalone1Module.class)
+            .add(org.micromodules.test.project.standalone.__module__.Standalone2Module.class)
             .add(org.micromodules.test.project.common.__module__.Common1Module.class)
             .add(org.micromodules.test.project.business.__module__.Business1Module.class)
             .add(org.micromodules.test.project.business.__module__.Business2Module.class)

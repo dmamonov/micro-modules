@@ -9,14 +9,7 @@ import org.micromodules.test.project.__module__.StandaloneLayer;
  *         Created: 2014-12-26 9:56 PM
  */
 public interface __module__ {
-    class Standalone1Module extends StandaloneLayer {
-        @Override
-        public void setup(final ModuleSetup setup) {
-            setup.comment("Logic without logal dependencies")
-                    .contract().include().matchByName("Standalone1")
-                    .implementation().include().matchByName("Standalone1Impl");
-        }
-    }
+
 
     class Common1Module extends CommonLayer {
         @Override

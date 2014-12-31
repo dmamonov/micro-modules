@@ -1,4 +1,4 @@
-package org.micromodules.test;
+package org.micromodules.test.suite;
 
 import org.junit.Test;
 import org.micromodules.control.Main;

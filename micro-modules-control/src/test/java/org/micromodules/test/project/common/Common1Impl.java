@@ -1,5 +1,6 @@
 package org.micromodules.test.project.common;
 
+import org.micromodules.test.project.standalone.Standalone1ContractByName;
 import org.micromodules.test.project.ui.Ui1;
 
 /**
@@ -12,6 +13,6 @@ public class Common1Impl implements Common1 {
     }
 
     public void properUsageOfStandaloneLogic(){
-        System.out.println(Standalone1.class);
+        System.out.println(Standalone1ContractByName.class);
     }
 }
