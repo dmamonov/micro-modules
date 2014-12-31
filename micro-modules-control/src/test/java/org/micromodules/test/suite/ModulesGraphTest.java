@@ -1,6 +1,5 @@
 package org.micromodules.test.suite;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -14,8 +13,6 @@ import org.micromodules.control.spec.ModulesSpecification;
 import org.micromodules.test.project.standalone.Standalone1ContractByName;
 import org.micromodules.test.project.standalone.Standalone2;
 import org.micromodules.test.project.standalone.__module__;
-
-import java.util.Collection;
 
 import static org.micromodules.control.graph.GraphDomain.EdgeType.*;
 import static org.micromodules.control.graph.GraphDomain.Node.classNode;
@@ -52,10 +49,6 @@ public class ModulesGraphTest extends Assert {
         this.modulesGraph = ModulesGraph.createFrom(classpathRelations, modulesSpecification);
     }
 
-    private String nodeSetToString(final Collection<Node> nodes){
-        return Joiner.on(", ").join(nodes.stream().map(Node::getSimpleName).iterator());
-    }
-
     private void assertEqualsSet(final ImmutableSet<Node> expected, final ImmutableSet<Node> actual) {
         if (!expected.equals(actual)){
             throw new IllegalStateException(String.format("Sets assertion failed:\n" +
@@ -63,10 +56,10 @@ public class ModulesGraphTest extends Assert {
                     "  actual: %s\n" +
                     "missing: %s\n" +
                     "  extra:  %s\n",
-                    nodeSetToString(expected),
-                    nodeSetToString(actual),
-                    nodeSetToString(Sets.difference(expected, actual)),
-                    nodeSetToString(Sets.difference(actual,expected))
+                    Node.nodesToString(expected),
+                    Node.nodesToString(actual),
+                    Node.nodesToString(Sets.difference(expected, actual)),
+                    Node.nodesToString(Sets.difference(actual, expected))
             ));
         }
     }

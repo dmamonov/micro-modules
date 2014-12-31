@@ -20,6 +20,7 @@ import org.micromodules.setup.Module;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.not;
 import static org.micromodules.control.graph.GraphDomain.EdgeType.*;
+import static org.micromodules.control.graph.GraphDomain.Node.nodesToString;
 import static org.micromodules.control.graph.GraphDomain.NodeType.*;
 import static org.micromodules.control.util.Predicates2.and;
 
@@ -122,6 +123,7 @@ public class ModulesGraph {
         final ModulesAnalyzer analyzer = ModulesAnalyzer.createFrom(this);
         query().from(ModuleNode).getStartSet().forEach(module -> {
             final boolean isSuperModule = analyzer.isSuperModule(module);
+            System.out.println("---------------------------------------------------");
             System.out.println("Simplify " + (isSuperModule ? "Super" : "") + " module: " + module);
             final ImmutableSet<Node> moduleClassesSet = analyzer.getModuleAllClasses(module).set(CodeNode);
             if (isSuperModule) {
@@ -137,21 +139,21 @@ public class ModulesGraph {
             }
             {
                 final ImmutableSet<Node> superModulesSet = analyzer.getSuperModules(module).set(ModuleNode);
-                System.out.println("  Super modules: " + superModulesSet);
+                System.out.println("  Super modules: " + nodesToString(superModulesSet));
                 final ImmutableSet<Node> directlyGrantedModulesSet = analyzer.getModuleDirectlyGrantedDependencies(module).set(ModuleNode);
-                System.out.println("  Directly granted dependencies: " + directlyGrantedModulesSet);
-                final ImmutableSet<Node> grantedModulesSet = query().from(directlyGrantedModulesSet).forward().by(SubModule).to(ModuleNode).recursive().set(ModuleNode);
-                System.out.println("  All granted dependencies: " + grantedModulesSet);
+                System.out.println("  Directly granted dependencies: " + nodesToString(directlyGrantedModulesSet));
+                final ImmutableSet<Node> grantedModulesSet = ImmutableSet.copyOf(Sets.union(directlyGrantedModulesSet, query().from(directlyGrantedModulesSet).forward().by(SubModule).to(ModuleNode).recursive().set(ModuleNode)));
+                System.out.println("  All granted dependencies: " + nodesToString(grantedModulesSet));
                 final ImmutableSet<Node> actualDependencySet = analyzer.getModuleDirectDependencies(module).useFinish().set(ModuleNode);
-                System.out.println("  Actual dependencies: " + actualDependencySet);
+                System.out.println("  Actual dependencies: " + nodesToString(actualDependencySet));
                 final Sets.SetView<Node> notAllowedActualDependenciesSet = Sets.difference(actualDependencySet, grantedModulesSet);
                 if (notAllowedActualDependenciesSet.size() > 0) {
-                    System.out.println("  Contains not allowed dependencies: " + notAllowedActualDependenciesSet);
+                    System.out.println("  Contains not allowed dependencies: " + nodesToString(notAllowedActualDependenciesSet));
                     notAllowedActualDependenciesSet.forEach(dependencyModule -> createEdge(module, NotAllowed, dependencyModule));
                 }
                 final Sets.SetView<Node> allowedActualDependenciesSet = Sets.intersection(actualDependencySet, grantedModulesSet);
                 if (allowedActualDependenciesSet.size() > 0) {
-                    System.out.println("  Contains allowed dependencies: " + allowedActualDependenciesSet);
+                    System.out.println("  Contains allowed dependencies: " + nodesToString(allowedActualDependenciesSet));
                     allowedActualDependenciesSet.forEach(dependencyModule -> createEdge(module, Allowed, dependencyModule));
                 }
             }

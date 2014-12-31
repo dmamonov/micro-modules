@@ -1,5 +1,6 @@
 package org.micromodules.control.graph;
 
+import com.google.common.base.Joiner;
 import com.googlecode.jatl.Html;
 import org.jgraph.graph.AttributeMap;
 import org.jgraph.graph.Edge;
@@ -8,6 +9,7 @@ import org.micromodules.control.util.Predicates2.BooleanMixin;
 import org.micromodules.setup.Contract;
 import org.micromodules.setup.Module;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -259,6 +261,10 @@ public final class GraphDomain {
             } else {
                 return NodeType.CodeNode.named(clazz.getName());
             }
+        }
+
+        public static String nodesToString(final Collection<Node> nodes){
+            return Joiner.on(", ").join(nodes.stream().map(Node::getSimpleName).iterator());
         }
     }
 }
