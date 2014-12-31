@@ -64,6 +64,8 @@ public class ModulesReport extends AbstractReport{
                 @SuppressWarnings("CodeBlock2Expr")
                 @Override
                 public void run() {
+                    index.h1().text("TODO drilldown").end();
+
                     final File allModulesGraph = renderer.export(graph.query().from(ModuleNode).forward().to(ModuleNode).single().unmaskedEdgesGraph(), dir, "all-modules");
                     index.img().attr("src",allModulesGraph.getName()).attr("width","1200px").end();
 
