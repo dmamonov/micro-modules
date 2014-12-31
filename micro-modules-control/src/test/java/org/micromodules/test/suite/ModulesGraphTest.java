@@ -8,7 +8,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.micromodules.control.graph.GraphDomain.Node;
 import org.micromodules.control.graph.GraphDomain.NodeEdge;
-import org.micromodules.control.graph.GraphDomain.NodeType;
 import org.micromodules.control.graph.ModulesGraph;
 import org.micromodules.control.scan.ClasspathRelations;
 import org.micromodules.control.spec.ModulesSpecification;
@@ -32,8 +31,8 @@ public class ModulesGraphTest extends Assert {
     private final Node entireApplication = classNode(org.micromodules.test.project.__module__.EntireApplication.class);
 
     private final Node standaloneLayer = classNode(org.micromodules.test.project.__module__.StandaloneLayer.class);
-    private final Node standalone1ModuleNode = classNode(__module__.Standalone1Module.class);
-    private final Node standalone2ModuleNode = classNode(__module__.Standalone2Module.class);
+    private final Node standalone1Module = classNode(__module__.Standalone1Module.class);
+    private final Node standalone2Module = classNode(__module__.Standalone2Module.class);
 
     private final Node commonLayer = classNode(org.micromodules.test.project.__module__.CommonLayer.class);
     private final Node common1Module = classNode(org.micromodules.test.project.common.__module__.Common1Module.class);
@@ -72,7 +71,7 @@ public class ModulesGraphTest extends Assert {
         }
     }
 
-    private void checkDirectRelation(final Node from, final Predicate<NodeEdge> by, final NodeType to, final ImmutableSet<Node> expectedSet) {
+    private void checkDirectRelation(final Node from, final Predicate<NodeEdge> by, final Predicate<Node> to, final ImmutableSet<Node> expectedSet) {
         final ImmutableSet<Node> actualSet = modulesGraph.query()
                 .from(from)
                 .forward().by(by)
@@ -81,7 +80,7 @@ public class ModulesGraphTest extends Assert {
         assertEqualsSet(expectedSet, actualSet);
     }
 
-    private void checkRecursiveRelation(final Node from, final Predicate<NodeEdge> by, final NodeType to, final ImmutableSet<Node> expectedSet) {
+    private void checkRecursiveRelation(final Node from, final Predicate<NodeEdge> by, final Predicate<Node> to, final ImmutableSet<Node> expectedSet) {
         final ImmutableSet<Node> actualSet = modulesGraph.query()
                 .from(from)
                 .forward().by(by)
@@ -97,21 +96,21 @@ public class ModulesGraphTest extends Assert {
 
     @Test
     public void testActualDependencyBetweenModulesExists() throws Exception {
-        checkDirectRelation(standalone1ModuleNode, Dependency, ModuleNode, ImmutableSet.of());
+        checkDirectRelation(standalone1Module, Dependency, ModuleNode, ImmutableSet.of());
 
 
     }
 
     @Test
     public void testNoDependencyBetweenModules() throws Exception {
-        checkDirectRelation(standalone2ModuleNode, Dependency, ModuleNode, ImmutableSet.of(standalone1ModuleNode));
+        checkDirectRelation(standalone2Module, Dependency, ModuleNode, ImmutableSet.of(standalone1Module));
     }
 
     @Test
     public void testDirectSubModulesHierarchy() throws Exception {
         checkDirectRelation(standaloneLayer, SubModule, ModuleNode, ImmutableSet.of(
-                standalone1ModuleNode,
-                standalone2ModuleNode
+                standalone1Module,
+                standalone2Module
         ));
         checkDirectRelation(entireApplication, SubModule, ModuleNode, ImmutableSet.of(
                 standaloneLayer,
@@ -124,10 +123,30 @@ public class ModulesGraphTest extends Assert {
     @Test
     public void testSubModulesHierarchy() throws Exception {
         checkRecursiveRelation(entireApplication, SubModule, ModuleNode, ImmutableSet.of(
-                standaloneLayer, standalone1ModuleNode, standalone2ModuleNode,
+                standaloneLayer, standalone1Module, standalone2Module,
                 commonLayer, common1Module,
                 businessLayer, business1Module, business2Module,
                 uiLayer, ui1Module, ui2Module, ui3Module
         ));
+    }
+
+    @Test
+    public void testGrantedDependency() throws Exception {
+        checkDirectRelation(standaloneLayer, Granted, ModuleNode, ImmutableSet.of());
+
+        checkDirectRelation(commonLayer, Granted, ModuleNode, ImmutableSet.of(standaloneLayer, commonLayer));
+        checkDirectRelation(common1Module, Granted, standalone1Module, ImmutableSet.of());
+    }
+
+    @Test
+    public void testAllowedDependency() throws Exception {
+        checkDirectRelation(common1Module, Dependency.and(Allowed), ModuleNode, ImmutableSet.of(
+                standalone1Module
+        ));
+    }
+
+    @Test
+    public void testNotAllowedDependency() throws Exception {
+        checkDirectRelation(standalone2Module, Dependency.and(NotAllowed), ModuleNode, ImmutableSet.of(standalone1Module));
     }
 }
