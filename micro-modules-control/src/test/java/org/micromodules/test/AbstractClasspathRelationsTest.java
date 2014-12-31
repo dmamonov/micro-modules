@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
  * @author dmitry.mamonov
  *         Created: 2014-12-30 2:31 PM
  */
-public class ClasspathRelationsTest {
+public class AbstractClasspathRelationsTest {
     public static final ImmutableSet<Class<?>> expectedModuleWrappers = ImmutableSet.<Class<?>>builder()
             .add(__module__.class)
             .add(org.micromodules.test.project.common.__module__.class)
@@ -46,7 +46,7 @@ public class ClasspathRelationsTest {
             .build();
     private final ClasspathRelations classpathRelations;
 
-    public ClasspathRelationsTest() {
+    public AbstractClasspathRelationsTest() {
         this.classpathRelations = ClasspathRelations.createFrom(Thread.currentThread().getContextClassLoader(), "org.micromodules.test.project");
     }
 

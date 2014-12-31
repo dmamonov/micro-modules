@@ -70,7 +70,7 @@ public class ModulesGraph {
                 } else {
                     final Node jarNode = JarNode.named(classpathRelations.getJarName(dependencyClazzNode.getName()));
                     addNode(jarNode);
-                    createEdge(clazzNode, UsesClass, jarNode);
+                    createEdge(clazzNode, UsesJar, jarNode);
                 }
             });
             classpathRelations.getClassContainsClasses(useClazz.getName())

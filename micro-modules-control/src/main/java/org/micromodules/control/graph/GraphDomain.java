@@ -47,6 +47,7 @@ public final class GraphDomain {
         SubModule,
         ContainsSubClass,
         UsesClass,
+        UsesJar,
         Dependency,
         NotAllowed,
         Allowed,

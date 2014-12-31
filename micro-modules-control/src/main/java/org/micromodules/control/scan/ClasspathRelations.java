@@ -67,21 +67,22 @@ public class ClasspathRelations {
                     if (Module.class.isAssignableFrom(clazz) && !clazz.isInterface() && !Module.Partial.class.isAssignableFrom(clazz)) {
                         //noinspection unchecked
                         modulesSetMutable.add((Class<? extends Module>) clazz);
-                    } else if (clazz.getSimpleName().equals("__module__")||clazz.getSimpleName().equals("__modules__")){
-                        //skip.
                     } else {
-                        packageToClassMapMutable.get(classInfo.getPackageName()).add(clazz);
-                        classesSetMutable.add(clazz);
-                        { //ContractClass annotation
-                            final Contract contract = clazz.getAnnotation(Contract.class);
-                            if (contract!=null) {
-                                moduleToAnnotatedContractClassesMapMutable.get(contract.value()).add(clazz);
+                        final String simpleClassName = clazz.getSimpleName();
+                        if (!simpleClassName.equals("__module__") && !simpleClassName.equals("__modules__")){
+                            packageToClassMapMutable.get(classInfo.getPackageName()).add(clazz);
+                            classesSetMutable.add(clazz);
+                            { //ContractClass annotation
+                                final Contract contract = clazz.getAnnotation(Contract.class);
+                                if (contract!=null) {
+                                    moduleToAnnotatedContractClassesMapMutable.get(contract.value()).add(clazz);
+                                }
                             }
-                        }
-                        { //Implementation annotation
-                            final Implementation implementation = clazz.getAnnotation(Implementation.class);
-                            if (implementation!=null){
-                                moduleToAnnotatedImplementationClassesMapMutable.get(implementation.value()).add(clazz);
+                            { //Implementation annotation
+                                final Implementation implementation = clazz.getAnnotation(Implementation.class);
+                                if (implementation!=null){
+                                    moduleToAnnotatedImplementationClassesMapMutable.get(implementation.value()).add(clazz);
+                                }
                             }
                         }
                     }
@@ -134,6 +135,19 @@ public class ClasspathRelations {
                     }
                 }
             }.run();
+        }
+
+        { //filter dependencies to specific annotations:
+            final String contractAnnotationClassName = Contract.class.getName();
+            final String implementationAnnotationClassName = Implementation.class.getName();
+            classToDependencyClassMapMutable.values().forEach(dependencyClassesSet -> {
+                dependencyClassesSet.remove(contractAnnotationClassName);
+                dependencyClassesSet.remove(implementationAnnotationClassName);
+            });
+            classContainsClassesMapMutable.values().forEach(containsSet -> {
+                containsSet.remove(contractAnnotationClassName);
+                containsSet.remove(contractAnnotationClassName);
+            });
         }
 
         this.modulesSet = ImmutableSet.copyOf(modulesSetMutable);

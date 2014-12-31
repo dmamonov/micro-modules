@@ -24,6 +24,7 @@ import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.ImmutableSet.copyOf;
 import static com.google.common.collect.Iterables.filter;
+import static org.micromodules.control.graph.GraphDomain.EdgeType.*;
 import static org.micromodules.control.graph.GraphDomain.NodeType.*;
 import static org.micromodules.control.util.Predicates2.and;
 
@@ -84,11 +85,20 @@ public class ModulesReport extends AbstractReport{
                                             and(not(node), ModuleNode),
                                             "Sub Modules"
                                     );
+                                    if (false) {
+                                        listGraph(html,
+                                                analyzer.getRelatedModules(node).unmaskedEdgesGraph(),
+                                                and(not(node), ModuleNode),
+                                                "Related Modules"
+                                        );
+                                    }
                                     listGraph(html,
-                                            analyzer.getRelatedModules(node).unmaskedEdgesGraph(),
-                                            and(not(node), ModuleNode),
-                                            "Related Modules"
-                                    );
+                                            graph.query().from(node).forward().by(ContractClass.or(ImplementationClass)).to(CodeNode).single()
+                                                    .useFinish().then().forward().by(UsesClass).to(CodeNode).single()
+                                                    .useFinish().then().backward().by(ContractClass.or(ImplementationClass)).to(ModuleNode).single()
+                                                    .unmaskedEdgesGraph(),
+                                            ModuleNode.andNot(node),
+                                            "Related modules");
                                     html.br();
                                 })
                                 .addColumn("Comment", (html, node) -> {
