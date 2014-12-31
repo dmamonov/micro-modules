@@ -60,12 +60,12 @@ public class AbstractClasspathRelationsTest {
 
     @Test
     public void testClassesNotContainsModules() throws Exception {
-        assertEquals(ImmutableSet.of(), copyOf(intersection(classpathRelations.getClassesSet(), expectedModules)));
+        assertEquals(ImmutableSet.<Class<?>>of(), copyOf(intersection(classpathRelations.getClassesSet(), expectedModules)));
     }
 
     @Test
     public void testClassesNotContainsModuleWrappers() throws Exception {
-        assertEquals(ImmutableSet.of(), copyOf(intersection(classpathRelations.getClassesSet(), expectedModuleWrappers)));
+        assertEquals(ImmutableSet.<Class<?>>of(), copyOf(intersection(classpathRelations.getClassesSet(), expectedModuleWrappers)));
 
     }
 

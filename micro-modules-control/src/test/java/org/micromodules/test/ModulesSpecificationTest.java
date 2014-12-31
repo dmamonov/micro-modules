@@ -30,8 +30,8 @@ public class ModulesSpecificationTest {
         final Optional<ModuleSpec> common1ModuleOptional = modulesSpecification.getModuleSpecSet().stream().filter(spec -> spec.getModule().equals(__module__.Common1Module.class)).findFirst();
         assertEquals(true, common1ModuleOptional.isPresent());
         final ModuleSpec common1ModuleSpec = common1ModuleOptional.get();
-        assertEquals(ImmutableSet.of(Common1.class), common1ModuleSpec.getContractClasses());
-        assertEquals(ImmutableSet.of(Common1Impl.class), common1ModuleSpec.getImplementationClasses());
+        assertEquals(ImmutableSet.<Class<?>>of(Common1.class), common1ModuleSpec.getContractClasses());
+        assertEquals(ImmutableSet.<Class<?>>of(Common1Impl.class), common1ModuleSpec.getImplementationClasses());
         assertEquals(false, common1ModuleSpec.isDeprecated());
     }
 }
