@@ -6,14 +6,10 @@ Control code dependencies at class level precision not affecting current project
 
 ##Inspiration
 
-Working with a distributed team on a project of a several hundred thousands lines of code
-I found it hard to control code usages at class level.
+By default java packaging policy at maximum allows to hide some implementation within package or class.
+And usually it's not even possible because of frameworks requirements.
 
-Once most of logic is accessible everywhere it started to be usual problem when, for example,
-developers use user interface models in core business logic.
-
-Idea of this framework is to get rid of such problems without increasing
-project complexity and not even require any changes in code structure at first step.
+There should be a better way to deny use of UI Models defined in jsp files within core business logic.
 
 ##Alternatives Overview
 
