@@ -11,7 +11,7 @@
         <relativePath>..</relativePath>
     </parent>
 
-    <artifactId>micro-modules-control</artifactId>
+    <artifactId>micromodules-control</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <dependencies>
